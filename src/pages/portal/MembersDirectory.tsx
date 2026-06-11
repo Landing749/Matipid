@@ -88,7 +88,8 @@ export function MembersDirectory() {
   const [sortBy, setSortBy] = useState<'lastName' | 'seat'>('lastName')
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema) as any,
     defaultValues: { status: 'active', role: 'none' },
   })
 
@@ -347,7 +348,7 @@ export function MembersDirectory() {
 
       {/* Add/Edit Modal */}
       <Modal open={showModal} onClose={() => setShowModal(false)} title={editing ? 'Edit Member' : 'Add Member'} size="lg">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="label">LRN (12 digits)</label>

@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Target, Plus, Trash2, AlertTriangle, CheckCircle, TrendingDown, X } from 'lucide-react'
+import { Target, Plus, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
 import { dbGet, dbSet, dbPush, dbRemove, logActivity } from '@/lib/firebase'
 import { formatCurrency, EXPENSE_CATEGORIES } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
@@ -68,7 +68,8 @@ export function BudgetTracker() {
   const [deleting, setDeleting] = useState<string | null>(null)
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema) as any,
     defaultValues: { period: 'monthly' },
   })
 
@@ -303,7 +304,7 @@ export function BudgetTracker() {
 
       {/* Modal */}
       <Modal open={showModal} onClose={() => { setShowModal(false); reset() }} title="New Budget Goal">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
           <div>
             <label className="label">Category</label>
             <select className="input" {...register('category')}>

@@ -55,12 +55,14 @@ const ACTIONS: Action[] = [
   },
 ]
 
-const staggerVariants = {
+import type { Variants } from 'framer-motion'
+
+const staggerVariants: Variants = {
   open: (i: number) => ({
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { delay: i * 0.06, duration: 0.2, ease: 'easeOut' },
+    transition: { delay: (i as number) * 0.06, duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] },
   }),
   closed: {
     opacity: 0,
