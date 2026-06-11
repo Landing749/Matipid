@@ -5,6 +5,7 @@ import { ArrowRight, DollarSign, Calendar, Image, Megaphone, Shield, Users } fro
 import { dbGet } from '@/lib/firebase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { Skeleton } from '@/components/ui'
+import { Logo } from '@/components/Logo'
 
 interface Settings {
   siteTitle?: string
@@ -83,6 +84,16 @@ export function Home() {
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 text-center">
           <motion.div {...stagger} initial="initial" animate="animate" className="space-y-6">
+            {/* Logo */}
+            <motion.div {...fadeUp} className="flex justify-center">
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <Logo size={84} rounded="rounded-3xl" />
+              </motion.div>
+            </motion.div>
+
             {/* Badge */}
             <motion.div {...fadeUp}>
               <span className="badge-purple text-xs tracking-widest uppercase">
@@ -154,12 +165,22 @@ export function Home() {
             { icon: Image, label: 'Gallery Photos', value: '200+' },
             { icon: Megaphone, label: 'Announcements', value: '30+' },
             { icon: Users, label: 'Officers', value: '10' },
-          ].map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center gap-2 text-center">
-              <stat.icon size={20} className="text-brand-400" />
-              <p className="text-2xl font-bold text-surface-100">{stat.value}</p>
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              whileHover={{ y: -4 }}
+              className="flex flex-col items-center gap-2 text-center cursor-default"
+            >
+              <motion.div whileHover={{ scale: 1.15, rotate: 6 }} transition={{ type: 'spring', stiffness: 300 }}>
+                <stat.icon size={20} className="text-brand-400" />
+              </motion.div>
+              <p className="text-2xl font-bold text-surface-100 tabular-nums">{stat.value}</p>
               <p className="text-xs text-surface-500 uppercase tracking-wider">{stat.label}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>

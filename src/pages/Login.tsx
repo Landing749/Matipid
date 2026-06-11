@@ -4,8 +4,10 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Zap, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSiteSettings } from '@/lib/useSiteSettings'
+import { Logo } from '@/components/Logo'
 import { Spinner } from '@/components/ui'
 
 const schema = z.object({
@@ -18,6 +20,7 @@ type FormValues = z.infer<typeof schema>
 export function Login() {
   const { signIn } = useAuth()
   const navigate = useNavigate()
+  const { data: settings } = useSiteSettings()
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
 
@@ -54,10 +57,14 @@ export function Login() {
         <div className="glass rounded-3xl p-8 shadow-2xl shadow-surface-950/80">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-xl shadow-brand-600/40 mb-4">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-xl font-bold text-surface-100">Officer Portal</h1>
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              className="mb-4"
+            >
+              <Logo size={56} rounded="rounded-2xl" />
+            </motion.div>
+            <h1 className="text-xl font-bold text-surface-100">{settings?.section ? `${settings.section} Portal` : 'Officer Portal'}</h1>
             <p className="text-surface-500 text-sm mt-1">Sign in to access your dashboard</p>
           </div>
 
@@ -96,14 +103,24 @@ export function Login() {
             </div>
 
             {error && (
-              <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              <motion.div
+                initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
+              >
                 {error}
-              </div>
+              </motion.div>
             )}
 
-            <button type="submit" disabled={isSubmitting} className="btn-primary w-full justify-center py-2.5">
+            <motion.button
+              type="submit"
+              disabled={isSubmitting}
+              whileHover={!isSubmitting ? { scale: 1.02 } : {}}
+              whileTap={!isSubmitting ? { scale: 0.98 } : {}}
+              className="btn-primary w-full justify-center py-2.5"
+            >
               {isSubmitting ? <Spinner size={16} /> : 'Sign in'}
-            </button>
+            </motion.button>
           </form>
         </div>
 
