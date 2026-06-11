@@ -1,6 +1,6 @@
-import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { PortalHeader } from './PortalHeader'
+import { PageTransition } from './PageTransition'
 import { CommandPalette } from '@/components/CommandPalette'
 import { Toaster } from 'sonner'
 
@@ -10,8 +10,8 @@ export function PortalLayout() {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <PortalHeader />
-        <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto p-6 hero-bg">
+          <PageTransition />
         </main>
       </div>
       <CommandPalette />

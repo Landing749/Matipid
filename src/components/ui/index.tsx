@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 // ─── Skeleton ───────────────────────────────────────────────────────────────
 
@@ -38,20 +39,30 @@ export function StatCard({ label, value, icon: Icon, trend, color = 'brand', loa
   }
 
   return (
-    <div className="card-hover group">
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.3 }}
+      className="card-hover group"
+    >
       <div className="flex items-start justify-between mb-3">
-        <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', colorMap[color])}>
+        <motion.div
+          whileHover={{ scale: 1.12, rotate: 6 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+          className={cn('w-9 h-9 rounded-xl flex items-center justify-center', colorMap[color])}
+        >
           <Icon size={18} />
-        </div>
+        </motion.div>
       </div>
-      <p className="text-2xl font-bold text-surface-100 mb-1">{value}</p>
+      <p className="text-2xl font-bold text-surface-100 mb-1 tabular-nums">{value}</p>
       <p className="text-xs text-surface-500 font-medium uppercase tracking-wider">{label}</p>
       {trend && (
         <p className={cn('text-xs mt-2', trend.value >= 0 ? 'text-emerald-400' : 'text-red-400')}>
           {trend.value >= 0 ? '+' : ''}{trend.value}% {trend.label}
         </p>
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -69,23 +80,32 @@ export function EmptyState({
   action?: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 gap-4">
-      <div className="w-14 h-14 rounded-2xl bg-surface-800/60 flex items-center justify-center">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col items-center justify-center py-16 gap-4"
+    >
+      <motion.div
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        className="w-14 h-14 rounded-2xl bg-surface-800/60 flex items-center justify-center"
+      >
         <Icon size={24} className="text-surface-500" />
-      </div>
+      </motion.div>
       <div className="text-center">
         <p className="text-surface-200 font-medium">{title}</p>
         {description && <p className="text-surface-500 text-sm mt-1">{description}</p>}
       </div>
       {action && <div className="mt-2">{action}</div>}
-    </div>
+    </motion.div>
   )
 }
 
 // ─── Modal ───────────────────────────────────────────────────────────────────
 
 import { X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 
 interface ModalProps {
   open: boolean
@@ -173,12 +193,17 @@ export function PageHeader({
   action?: React.ReactNode
 }) {
   return (
-    <div className="flex items-start justify-between mb-6">
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex items-start justify-between mb-6"
+    >
       <div>
         <h1 className="text-2xl font-bold text-surface-100">{title}</h1>
         {description && <p className="text-surface-500 text-sm mt-1">{description}</p>}
       </div>
       {action && <div className="flex-shrink-0">{action}</div>}
-    </div>
+    </motion.div>
   )
 }

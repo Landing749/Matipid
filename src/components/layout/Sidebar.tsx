@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, DollarSign, ShieldCheck, ScrollText, History,
   HardDrive, Activity, BarChart2, Settings, Users, Database,
-  Search, ChevronLeft, ChevronRight, LogOut, ExternalLink,
-  Zap, Megaphone, Calendar, Image
+  Search, ChevronLeft, LogOut, ExternalLink,
+  Megaphone, Calendar, Image
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/Logo'
+import { useSiteSettings } from '@/lib/useSiteSettings'
 
 interface NavItem {
   icon: React.ElementType
@@ -39,6 +41,7 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const { profile, role, signOut } = useAuth()
+  const { data: settings } = useSiteSettings()
   const navigate = useNavigate()
 
   const visibleItems = navItems.filter(
@@ -58,9 +61,7 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-surface-800/60 flex-shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-600/30">
-          <Zap className="w-4 h-4 text-white" />
-        </div>
+        <Logo size={36} />
         <AnimatePresence>
           {!collapsed && (
             <motion.div
@@ -70,7 +71,9 @@ export function Sidebar() {
               transition={{ duration: 0.15 }}
               className="overflow-hidden"
             >
-              <span className="text-sm font-bold text-surface-100 whitespace-nowrap">MATIPID</span>
+              <span className="text-sm font-bold text-surface-100 whitespace-nowrap">
+                {settings?.section ? `${settings.section}` : 'MATIPID'}
+              </span>
               <p className="text-xs text-surface-500 whitespace-nowrap">Officer Portal</p>
             </motion.div>
           )}
@@ -82,34 +85,46 @@ export function Sidebar() {
         <div className="px-3 pt-3">
           <NavLink
             to="/portal/search"
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-surface-800/50 text-surface-400 text-sm hover:bg-surface-800 hover:text-surface-200 transition-all group"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-surface-800/50 text-surface-400 text-sm hover:bg-surface-800 hover:text-surface-200 hover:ring-1 hover:ring-brand-500/30 transition-all group"
           >
-            <Search className="w-4 h-4" />
+            <Search className="w-4 h-4 group-hover:text-brand-400 transition-colors" />
             <span className="flex-1 text-left">Search…</span>
-            <kbd className="text-xs bg-surface-700 px-1.5 py-0.5 rounded text-surface-500 font-mono">⌘K</kbd>
+            <kbd className="text-xs bg-surface-700 px-1.5 py-0.5 rounded text-surface-500 font-mono group-hover:text-surface-300 transition-colors">⌘K</kbd>
           </NavLink>
         </div>
       )}
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5 no-scrollbar">
-        {visibleItems.map((item) => (
-          <NavLink
+        {visibleItems.map((item, i) => (
+          <motion.div
             key={item.to}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.25, delay: i * 0.025 }}
+          >
+          <NavLink
             to={item.to}
             title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group',
+                'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group',
                 isActive
                   ? 'bg-brand-600/15 text-brand-300'
-                  : 'text-surface-400 hover:bg-surface-800/60 hover:text-surface-100'
+                  : 'text-surface-400 hover:bg-surface-800/60 hover:text-surface-100 active:scale-[0.98]'
               )
             }
           >
             {({ isActive }) => (
               <>
-                <item.icon className={cn('w-4.5 h-4.5 flex-shrink-0', isActive ? 'text-brand-400' : 'text-surface-500 group-hover:text-surface-300')} size={18} />
+                {isActive && (
+                  <motion.span
+                    layoutId="sidebar-active"
+                    className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-gradient-to-b from-brand-400 to-brand-600"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <item.icon className={cn('w-4.5 h-4.5 flex-shrink-0 transition-transform group-hover:scale-110', isActive ? 'text-brand-400' : 'text-surface-500 group-hover:text-surface-300')} size={18} />
                 <AnimatePresence>
                   {!collapsed && (
                     <motion.span
@@ -125,6 +140,7 @@ export function Sidebar() {
               </>
             )}
           </NavLink>
+          </motion.div>
         ))}
       </nav>
 
@@ -133,15 +149,15 @@ export function Sidebar() {
         <NavLink
           to="/"
           title={collapsed ? 'Public Site' : undefined}
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-surface-500 hover:bg-surface-800/60 hover:text-surface-300 transition-all"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-surface-500 hover:bg-surface-800/60 hover:text-surface-300 transition-all group"
         >
-          <ExternalLink size={16} className="flex-shrink-0" />
+          <ExternalLink size={16} className="flex-shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           {!collapsed && <span>Public Site</span>}
         </NavLink>
 
         {/* Profile */}
-        <div className={cn('flex items-center gap-3 px-3 py-2 rounded-xl', collapsed && 'justify-center')}>
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center flex-shrink-0 text-xs font-bold text-white uppercase">
+        <div className={cn('flex items-center gap-3 px-3 py-2 rounded-xl transition-colors hover:bg-surface-800/40', collapsed && 'justify-center')}>
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center flex-shrink-0 text-xs font-bold text-white uppercase ring-2 ring-surface-900 shadow-md shadow-brand-600/20">
             {profile?.email?.[0] ?? 'U'}
           </div>
           {!collapsed && (
@@ -151,7 +167,7 @@ export function Sidebar() {
             </div>
           )}
           {!collapsed && (
-            <button onClick={handleSignOut} className="text-surface-600 hover:text-red-400 transition-colors p-1">
+            <button onClick={handleSignOut} className="text-surface-600 hover:text-red-400 hover:scale-110 transition-all p-1">
               <LogOut size={14} />
             </button>
           )}
@@ -159,12 +175,16 @@ export function Sidebar() {
       </div>
 
       {/* Collapse toggle */}
-      <button
+      <motion.button
         onClick={() => setCollapsed((v) => !v)}
-        className="absolute top-4 -right-3 z-50 w-6 h-6 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-surface-400 hover:text-surface-100 hover:bg-surface-700 transition-all shadow-md"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="absolute top-4 -right-3 z-50 w-6 h-6 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-surface-400 hover:text-surface-100 hover:bg-surface-700 transition-colors shadow-md"
       >
-        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-      </button>
+        <motion.span animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.25 }}>
+          <ChevronLeft size={12} />
+        </motion.span>
+      </motion.button>
     </motion.aside>
   )
 }

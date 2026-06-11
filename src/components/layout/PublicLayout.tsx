@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Outlet, NavLink, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, Menu, X, LogIn } from 'lucide-react'
+import { Menu, X, LogIn } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { Sun, Moon } from 'lucide-react'
 import { Toaster } from 'sonner'
+import { Logo } from '@/components/Logo'
+import { useSiteSettings } from '@/lib/useSiteSettings'
 
 const navLinks = [
   { to: '/', label: 'Home', end: true },
@@ -20,6 +22,8 @@ const navLinks = [
 export function PublicLayout() {
   const [open, setOpen] = useState(false)
   const { theme, toggle } = useTheme()
+  const { data: settings } = useSiteSettings()
+  const sectionName = settings?.section || 'MATIPID'
 
   return (
     <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col">
@@ -27,10 +31,8 @@ export function PublicLayout() {
       <header className="sticky top-0 z-50 border-b border-surface-800/60 bg-surface-950/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-600/30 group-hover:shadow-brand-600/50 transition-shadow">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-surface-100">MATIPID</span>
+            <Logo size={34} />
+            <span className="font-bold text-surface-100 group-hover:text-brand-300 transition-colors">{sectionName}</span>
           </Link>
 
           {/* Desktop nav */}
@@ -130,10 +132,8 @@ export function PublicLayout() {
       <footer className="border-t border-surface-800/60 bg-surface-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
-              <Zap className="w-3 h-3 text-white" />
-            </div>
-            <span className="text-sm font-medium text-surface-400">MATIPID</span>
+            <Logo size={24} animated={false} rounded="rounded-md" />
+            <span className="text-sm font-medium text-surface-400">{sectionName}</span>
           </div>
           <p className="text-xs text-surface-600">Grade 8 • Section Management & Transparency Platform</p>
           <p className="text-xs text-surface-600">© {new Date().getFullYear()} ATH Studios</p>

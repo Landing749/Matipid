@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
-import { Bell, Sun, Moon, Search } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Bell, Sun, Moon } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { ROLE_LABELS } from '@/lib/utils'
@@ -31,7 +32,15 @@ export function PortalHeader() {
       <div className="flex items-center gap-2">
         <span className="text-surface-500 text-sm">Portal</span>
         <span className="text-surface-700">/</span>
-        <span className="text-surface-100 text-sm font-medium">{label}</span>
+        <motion.span
+          key={label}
+          initial={{ opacity: 0, x: -6 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.2 }}
+          className="text-surface-100 text-sm font-medium"
+        >
+          {label}
+        </motion.span>
       </div>
 
       <div className="flex items-center gap-2">
@@ -41,18 +50,24 @@ export function PortalHeader() {
           </span>
         )}
 
-        <button
+        <motion.button
           onClick={toggle}
-          className="p-2 rounded-xl text-surface-400 hover:bg-surface-800 hover:text-surface-100 transition-all"
+          whileHover={{ scale: 1.08, rotate: 12 }}
+          whileTap={{ scale: 0.92 }}
+          className="p-2 rounded-xl text-surface-400 hover:bg-surface-800 hover:text-surface-100 transition-colors"
           title="Toggle theme"
         >
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+        </motion.button>
 
-        <button className="p-2 rounded-xl text-surface-400 hover:bg-surface-800 hover:text-surface-100 transition-all relative">
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
+          className="p-2 rounded-xl text-surface-400 hover:bg-surface-800 hover:text-surface-100 transition-colors relative"
+        >
           <Bell size={16} />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-brand-500" />
-        </button>
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
+        </motion.button>
       </div>
     </header>
   )

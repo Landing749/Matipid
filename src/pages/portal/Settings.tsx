@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Settings as SettingsIcon, Save, Upload, Globe, Palette, Info, AlertTriangle } from 'lucide-react'
+import { Settings as SettingsIcon, Save, Upload, Globe, Palette, Info, AlertTriangle, RotateCcw, X, Image as ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { dbGet, dbSet, logActivity } from '@/lib/firebase'
 import { uploadImage } from '@/lib/cloudinary'
 import { useAuth } from '@/contexts/AuthContext'
+import { useQueryClient } from '@tanstack/react-query'
 import { PageHeader, Spinner } from '@/components/ui'
+import { Logo } from '@/components/Logo'
+import defaultLogo from '@/assets/logo.svg'
 
 interface SiteSettings {
   siteTitle: string
@@ -38,12 +41,24 @@ const DEFAULT_SETTINGS: SiteSettings = {
   socialLinks: {},
 }
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  show: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, delay: i * 0.06, ease: 'easeOut' as const },
+  }),
+}
+
 export function Settings() {
   const { user, profile } = useAuth()
+  const queryClient = useQueryClient()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [dragLogo, setDragLogo] = useState(false)
+  const [dragBanner, setDragBanner] = useState(false)
 
   const { register, handleSubmit, reset, watch, setValue, formState: { isDirty } } = useForm<SiteSettings>({
     defaultValues: DEFAULT_SETTINGS,
@@ -74,6 +89,7 @@ export function Settings() {
       })
       toast.success('Settings saved.')
       reset(values)
+      queryClient.invalidateQueries({ queryKey: ['settings'] })
     } catch {
       toast.error('Failed to save settings.')
     } finally {
@@ -81,9 +97,7 @@ export function Settings() {
     }
   }
 
-  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function uploadLogoFile(file: File) {
     setUploadingLogo(true)
     try {
       const res = await uploadImage(file, 'logos')
@@ -91,12 +105,9 @@ export function Settings() {
       toast.success('Logo uploaded.')
     } catch { toast.error('Upload failed.') }
     finally { setUploadingLogo(false) }
-    e.target.value = ''
   }
 
-  async function handleBannerUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function uploadBannerFile(file: File) {
     setUploadingBanner(true)
     try {
       const res = await uploadImage(file, 'announcements')
@@ -104,13 +115,44 @@ export function Settings() {
       toast.success('Banner uploaded.')
     } catch { toast.error('Upload failed.') }
     finally { setUploadingBanner(false) }
+  }
+
+  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) uploadLogoFile(file)
     e.target.value = ''
+  }
+
+  function handleBannerUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) uploadBannerFile(file)
+    e.target.value = ''
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLLabelElement>, kind: 'logo' | 'banner') {
+    e.preventDefault()
+    kind === 'logo' ? setDragLogo(false) : setDragBanner(false)
+    const file = e.dataTransfer.files?.[0]
+    if (!file || !file.type.startsWith('image/')) return
+    kind === 'logo' ? uploadLogoFile(file) : uploadBannerFile(file)
+  }
+
+  function resetLogo() {
+    setValue('logoUrl', '', { shouldDirty: true })
+    toast.info('Reverted to default MATIPID logo.')
   }
 
   const logoUrl = watch('logoUrl')
   const bannerImage = watch('bannerImage')
 
-  if (loading) return <div className="py-12 text-center text-surface-500 text-sm">Loading settings…</div>
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-3 text-surface-500">
+        <Spinner size={24} />
+        <p className="text-sm">Loading settings…</p>
+      </div>
+    )
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
@@ -118,17 +160,25 @@ export function Settings() {
         title="Settings"
         description="Configure site-wide preferences and content."
         action={
-          <button onClick={handleSubmit(onSave)} disabled={saving || !isDirty} className="btn-primary">
+          <motion.button
+            onClick={handleSubmit(onSave)}
+            disabled={saving || !isDirty}
+            className="btn-primary"
+            whileHover={!saving && isDirty ? { scale: 1.03 } : {}}
+            whileTap={!saving && isDirty ? { scale: 0.97 } : {}}
+          >
             {saving ? <Spinner size={16} /> : <><Save size={16} /> Save Changes</>}
-          </button>
+          </motion.button>
         }
       />
 
-      <form onSubmit={handleSubmit(onSave)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSave)} className="space-y-6 pb-24 sm:pb-6">
         {/* Section info */}
-        <div className="card">
+        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0} className="card-hover">
           <div className="flex items-center gap-2 mb-4">
-            <Info size={16} className="text-brand-400" />
+            <div className="icon-tile bg-brand-600/15 text-brand-400">
+              <Info size={16} />
+            </div>
             <h2 className="text-sm font-semibold text-surface-200">Section Information</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -161,40 +211,135 @@ export function Settings() {
               <input className="input" {...register('footerText')} />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Branding */}
-        <div className="card">
+        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={1} className="card-hover">
           <div className="flex items-center gap-2 mb-4">
-            <Palette size={16} className="text-brand-400" />
+            <div className="icon-tile bg-gold-500/15 text-gold-400">
+              <Palette size={16} />
+            </div>
             <h2 className="text-sm font-semibold text-surface-200">Branding</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-6">
+            {/* Logo */}
             <div>
               <label className="label">Section Logo</label>
-              <label className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-800/60 border border-surface-700/60 border-dashed cursor-pointer hover:border-brand-600/50 transition-all">
-                {uploadingLogo ? <Spinner size={16} /> : <Upload size={16} className="text-surface-400 flex-shrink-0" />}
-                <span className="text-sm text-surface-400 truncate">{logoUrl ? 'Logo uploaded ✓' : 'Upload logo image'}</span>
-                <input type="file" accept="image/*" className="sr-only" onChange={handleLogoUpload} />
-              </label>
-              {logoUrl && <img src={logoUrl} alt="Logo" className="mt-2 h-16 w-16 rounded-xl object-cover border border-surface-700" />}
+              <div className="flex items-center gap-4">
+                {/* Live preview */}
+                <motion.div
+                  key={logoUrl || 'default'}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+                  className="relative flex-shrink-0"
+                >
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden border border-surface-700/60 bg-gradient-to-br from-brand-500/15 via-surface-900 to-brand-900/30 flex items-center justify-center glow-ring">
+                    <img
+                      src={logoUrl || defaultLogo}
+                      alt="Section logo preview"
+                      className="w-[70%] h-[70%] object-contain"
+                    />
+                  </div>
+                  {logoUrl && (
+                    <button
+                      type="button"
+                      onClick={resetLogo}
+                      title="Revert to default logo"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-surface-400 hover:text-red-400 hover:border-red-500/40 transition-colors shadow-md"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
+                </motion.div>
+
+                {/* Upload zone */}
+                <div className="flex-1 min-w-0">
+                  <label
+                    className={`upload-zone ${dragLogo ? 'dragging' : ''}`}
+                    onDragOver={(e) => { e.preventDefault(); setDragLogo(true) }}
+                    onDragLeave={() => setDragLogo(false)}
+                    onDrop={(e) => handleDrop(e, 'logo')}
+                  >
+                    {uploadingLogo ? <Spinner size={16} /> : <Upload size={16} className="text-surface-400 flex-shrink-0" />}
+                    <span className="text-sm text-surface-400 truncate">
+                      {uploadingLogo ? 'Uploading…' : logoUrl ? 'Replace logo image' : 'Drop image or click to upload'}
+                    </span>
+                    <input type="file" accept="image/*" className="sr-only" onChange={handleLogoUpload} />
+                  </label>
+                  <p className="text-xs text-surface-500 mt-2">
+                    {logoUrl
+                      ? 'Custom logo active across the portal & public site.'
+                      : 'Using the default MATIPID mark. Upload a square image (PNG/SVG) for best results.'}
+                  </p>
+                  {logoUrl && (
+                    <button
+                      type="button"
+                      onClick={resetLogo}
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs text-surface-500 hover:text-brand-300 transition-colors"
+                    >
+                      <RotateCcw size={12} /> Reset to default logo
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
+
+            {/* Banner */}
             <div>
               <label className="label">Homepage Banner</label>
-              <label className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-800/60 border border-surface-700/60 border-dashed cursor-pointer hover:border-brand-600/50 transition-all">
-                {uploadingBanner ? <Spinner size={16} /> : <Upload size={16} className="text-surface-400 flex-shrink-0" />}
-                <span className="text-sm text-surface-400 truncate">{bannerImage ? 'Banner uploaded ✓' : 'Upload banner image'}</span>
+              <label
+                className={`upload-zone ${dragBanner ? 'dragging' : ''}`}
+                onDragOver={(e) => { e.preventDefault(); setDragBanner(true) }}
+                onDragLeave={() => setDragBanner(false)}
+                onDrop={(e) => handleDrop(e, 'banner')}
+              >
+                {uploadingBanner ? <Spinner size={16} /> : <ImageIcon size={16} className="text-surface-400 flex-shrink-0" />}
+                <span className="text-sm text-surface-400 truncate">
+                  {uploadingBanner ? 'Uploading…' : bannerImage ? 'Replace banner image' : 'Drop image or click to upload'}
+                </span>
                 <input type="file" accept="image/*" className="sr-only" onChange={handleBannerUpload} />
               </label>
-              {bannerImage && <img src={bannerImage} alt="Banner" className="mt-2 h-16 w-full rounded-xl object-cover border border-surface-700" />}
+              {bannerImage ? (
+                <motion.img
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  src={bannerImage}
+                  alt="Banner"
+                  className="mt-2 h-24 w-full rounded-xl object-cover border border-surface-700"
+                />
+              ) : (
+                <div className="mt-2 h-24 w-full rounded-xl border border-dashed border-surface-800 flex items-center justify-center text-xs text-surface-600">
+                  No banner uploaded
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        </motion.div>
+
+        {/* Live Preview */}
+        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={2} className="card-hover">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="icon-tile bg-brand-600/15 text-brand-400">
+              <SettingsIcon size={16} />
+            </div>
+            <h2 className="text-sm font-semibold text-surface-200">Preview</h2>
+          </div>
+          <div className="rounded-xl border border-surface-800/60 bg-surface-950/60 p-4 flex items-center gap-3">
+            <Logo size={40} animated={false} />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-surface-100 truncate">{watch('siteTitle') || 'Section MATIPID'}</p>
+              <p className="text-xs text-surface-500 truncate">{watch('motto') || 'Transparent. Accountable. United.'}</p>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Social links */}
-        <div className="card">
+        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={3} className="card-hover">
           <div className="flex items-center gap-2 mb-4">
-            <Globe size={16} className="text-brand-400" />
+            <div className="icon-tile bg-emerald-500/15 text-emerald-400">
+              <Globe size={16} />
+            </div>
             <h2 className="text-sm font-semibold text-surface-200">Social Links</h2>
           </div>
           <div className="grid sm:grid-cols-3 gap-4">
@@ -205,12 +350,17 @@ export function Settings() {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Maintenance mode */}
-        <div className={`card border ${maintenance ? 'border-red-600/40 bg-red-900/10' : 'border-surface-800/60'}`}>
+        <motion.div
+          variants={fadeUp} initial="hidden" animate="show" custom={4}
+          className={`card border transition-colors duration-300 ${maintenance ? 'border-red-600/40 bg-red-900/10' : 'border-surface-800/60'}`}
+        >
           <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle size={16} className={maintenance ? 'text-red-400' : 'text-surface-400'} />
+            <div className={`icon-tile ${maintenance ? 'bg-red-500/15 text-red-400' : 'bg-surface-700/30 text-surface-400'}`}>
+              <AlertTriangle size={16} />
+            </div>
             <h2 className="text-sm font-semibold text-surface-200">Maintenance Mode</h2>
           </div>
           <div className="flex items-center justify-between">
@@ -224,10 +374,30 @@ export function Settings() {
             </label>
           </div>
           {maintenance && (
-            <p className="text-xs text-red-400 mt-3 font-medium">⚠️ Public site is currently in maintenance mode.</p>
+            <motion.p
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="text-xs text-red-400 mt-3 font-medium"
+            >
+              ⚠️ Public site is currently in maintenance mode.
+            </motion.p>
           )}
-        </div>
+        </motion.div>
       </form>
+
+      {/* Sticky save bar (mobile) */}
+      {isDirty && (
+        <motion.div
+          initial={{ y: 80, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 80, opacity: 0 }}
+          className="fixed bottom-4 left-4 right-4 sm:hidden z-40"
+        >
+          <button onClick={handleSubmit(onSave)} disabled={saving} className="btn-primary w-full shadow-2xl">
+            {saving ? <Spinner size={16} /> : <><Save size={16} /> Save Changes</>}
+          </button>
+        </motion.div>
+      )}
     </motion.div>
   )
 }
