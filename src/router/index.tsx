@@ -29,6 +29,9 @@ import { AnnouncementsManager } from '@/pages/portal/AnnouncementsManager'
 import { GalleryManager } from '@/pages/portal/GalleryManager'
 import { OfficersManager } from '@/pages/portal/OfficersManager'
 import { EventsManager } from '@/pages/portal/EventsManager'
+import { BudgetTracker } from '@/pages/portal/BudgetTracker'
+import { CalendarView } from '@/pages/portal/CalendarView'
+import { MembersDirectory } from '@/pages/portal/MembersDirectory'
 
 export function AppRouter() {
   return (
@@ -65,6 +68,7 @@ export function AppRouter() {
           <Route path="gallery" element={<GalleryManager />} />
           <Route path="officers" element={<OfficersManager />} />
           <Route path="finance" element={<ProtectedRoute allowedRoles={['admin', 'treasurer', 'auditor']}><Finance /></ProtectedRoute>} />
+          <Route path="budget" element={<ProtectedRoute allowedRoles={['admin', 'treasurer', 'auditor']}><BudgetTracker /></ProtectedRoute>} />
           <Route path="audit" element={<ProtectedRoute allowedRoles={['admin', 'auditor']}><Audit /></ProtectedRoute>} />
           <Route path="logs" element={<ActivityLog />} />
           <Route path="versions" element={<ProtectedRoute allowedRoles={['admin']}><VersionHistory /></ProtectedRoute>} />
@@ -75,6 +79,8 @@ export function AppRouter() {
           <Route path="users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagement /></ProtectedRoute>} />
           <Route path="settings" element={<ProtectedRoute allowedRoles={['admin']}><Settings /></ProtectedRoute>} />
           <Route path="search" element={<SearchPage />} />
+          <Route path="calendar" element={<CalendarView />} />
+          <Route path="members" element={<MembersDirectory />} />
         </Route>
 
         {/* Catch-all */}

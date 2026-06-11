@@ -1,9 +1,10 @@
 import { useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Bell, Sun, Moon } from 'lucide-react'
+import { Sun, Moon } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { ROLE_LABELS } from '@/lib/utils'
+import { NotificationsPanel } from '@/components/NotificationsPanel'
 
 const ROUTE_LABELS: Record<string, string> = {
   '/portal/dashboard': 'Dashboard',
@@ -18,6 +19,9 @@ const ROUTE_LABELS: Record<string, string> = {
   '/portal/users': 'User Management',
   '/portal/settings': 'Settings',
   '/portal/search': 'Search',
+  '/portal/budget': 'Budget Tracker',
+  '/portal/calendar': 'Calendar',
+  '/portal/members': 'Members Directory',
 }
 
 export function PortalHeader() {
@@ -60,14 +64,7 @@ export function PortalHeader() {
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </motion.button>
 
-        <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.92 }}
-          className="p-2 rounded-xl text-surface-400 hover:bg-surface-800 hover:text-surface-100 transition-colors relative"
-        >
-          <Bell size={16} />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
-        </motion.button>
+        <NotificationsPanel />
       </div>
     </header>
   )

@@ -2,6 +2,7 @@ import { Sidebar } from './Sidebar'
 import { PortalHeader } from './PortalHeader'
 import { PageTransition } from './PageTransition'
 import { CommandPalette } from '@/components/CommandPalette'
+import { QuickActionDock } from '@/components/QuickActionDock'
 import { Toaster } from 'sonner'
 
 export function PortalLayout() {
@@ -15,6 +16,7 @@ export function PortalLayout() {
         </main>
       </div>
       <CommandPalette />
+      <QuickActionDock />
       <Toaster
         position="top-right"
         theme="dark"
