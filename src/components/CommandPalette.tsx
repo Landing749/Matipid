@@ -17,7 +17,12 @@ interface Command {
 }
 
 const commands: Command[] = [
-  // Portal
+  // Portal — Content
+  { id: 'announcements-mgr', label: 'Announcements', icon: Megaphone, to: '/portal/announcements', category: 'Content' },
+  { id: 'events-mgr', label: 'Events', icon: Calendar, to: '/portal/events', category: 'Content' },
+  { id: 'gallery-mgr', label: 'Gallery', icon: Image, to: '/portal/gallery', category: 'Content' },
+  { id: 'officers-mgr', label: 'Officers', icon: Users, to: '/portal/officers', category: 'Content' },
+  // Portal — Admin
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, to: '/portal/dashboard', category: 'Portal' },
   { id: 'finance', label: 'Finance', icon: DollarSign, to: '/portal/finance', category: 'Portal' },
   { id: 'audit', label: 'Audit', icon: ShieldCheck, to: '/portal/audit', category: 'Portal' },
@@ -31,9 +36,9 @@ const commands: Command[] = [
   { id: 'settings', label: 'Settings', icon: Settings, to: '/portal/settings', category: 'Portal' },
   // Public
   { id: 'home', label: 'Home', icon: Home, to: '/', category: 'Public' },
-  { id: 'announcements', label: 'Announcements', icon: Megaphone, to: '/announcements', category: 'Public' },
-  { id: 'events', label: 'Events', icon: Calendar, to: '/events', category: 'Public' },
-  { id: 'gallery', label: 'Gallery', icon: Image, to: '/gallery', category: 'Public' },
+  { id: 'ann-pub', label: 'Announcements', icon: Megaphone, to: '/announcements', category: 'Public' },
+  { id: 'events-pub', label: 'Events', icon: Calendar, to: '/events', category: 'Public' },
+  { id: 'gallery-pub', label: 'Gallery', icon: Image, to: '/gallery', category: 'Public' },
   { id: 'transparency', label: 'Financial Transparency', icon: Eye, to: '/finances', category: 'Public' },
 ]
 

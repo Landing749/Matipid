@@ -25,6 +25,10 @@ import { StorageManager } from '@/pages/portal/StorageManager'
 import { UserManagement } from '@/pages/portal/UserManagement'
 import { Settings } from '@/pages/portal/Settings'
 import { SearchPage } from '@/pages/portal/SearchPage'
+import { AnnouncementsManager } from '@/pages/portal/AnnouncementsManager'
+import { GalleryManager } from '@/pages/portal/GalleryManager'
+import { OfficersManager } from '@/pages/portal/OfficersManager'
+import { EventsManager } from '@/pages/portal/EventsManager'
 
 export function AppRouter() {
   return (
@@ -56,6 +60,10 @@ export function AppRouter() {
         >
           <Route index element={<Navigate to="/portal/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="announcements" element={<AnnouncementsManager />} />
+          <Route path="events" element={<EventsManager />} />
+          <Route path="gallery" element={<GalleryManager />} />
+          <Route path="officers" element={<OfficersManager />} />
           <Route path="finance" element={<ProtectedRoute allowedRoles={['admin', 'treasurer', 'auditor']}><Finance /></ProtectedRoute>} />
           <Route path="audit" element={<ProtectedRoute allowedRoles={['admin', 'auditor']}><Audit /></ProtectedRoute>} />
           <Route path="logs" element={<ActivityLog />} />
