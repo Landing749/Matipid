@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { @apply border-surface-800; }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+  body { @apply bg-surface-950 text-surface-100 font-sans; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-surface-700 rounded-full; }
+  ::selection { @apply bg-brand-600/40 text-brand-100; }
+}
+
+@layer components {
+  .glass { @apply bg-surface-900/60 backdrop-blur-md border border-surface-800/60; }
+  .card { @apply glass rounded-2xl p-5 transition-all duration-200; }
+  .card-hover { @apply card hover:border-brand-600/40 hover:shadow-lg hover:shadow-brand-600/5; }
+
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-950 disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-500 focus:ring-brand-500 shadow-lg shadow-brand-600/20; }
+  .btn-secondary { @apply btn bg-surface-800 text-surface-100 hover:bg-surface-700 focus:ring-surface-600; }
+  .btn-ghost { @apply btn bg-transparent text-surface-400 hover:bg-surface-800 hover:text-surface-100 focus:ring-surface-600; }
+  .btn-danger { @apply btn bg-red-600/20 text-red-400 hover:bg-red-600/30 focus:ring-red-500 border border-red-600/20; }
+  .btn-gold { @apply btn bg-gold-500 text-surface-950 hover:bg-gold-400 focus:ring-gold-400; }
+
+  .input { @apply w-full rounded-xl bg-surface-800/60 border border-surface-700/60 px-4 py-2.5 text-sm text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all; }
+  .label { @apply block text-xs font-medium text-surface-400 mb-1.5 uppercase tracking-wider; }
+
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium; }
+  .badge-purple { @apply badge bg-brand-600/20 text-brand-300 border border-brand-600/30; }
+  .badge-gold { @apply badge bg-gold-500/20 text-gold-300 border border-gold-500/30; }
+  .badge-green { @apply badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30; }
+  .badge-red { @apply badge bg-red-500/20 text-red-300 border border-red-500/30; }
+  .badge-yellow { @apply badge bg-yellow-500/20 text-yellow-300 border border-yellow-500/30; }
+  .badge-gray { @apply badge bg-surface-700/50 text-surface-400 border border-surface-700/50; }
+
+  .sidebar-item { @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-surface-400 hover:bg-surface-800/60 hover:text-surface-100 transition-all cursor-pointer; }
+  .sidebar-item-active { @apply sidebar-item bg-brand-600/15 text-brand-300 hover:bg-brand-600/20 hover:text-brand-200; }
+
+  .gradient-text { @apply bg-gradient-to-r from-brand-400 via-brand-300 to-gold-400 bg-clip-text text-transparent; }
+  .skeleton { @apply rounded-xl bg-surface-800/60 animate-pulse; }
+  .mono { @apply font-mono text-sm; }
+  .hero-bg { background: radial-gradient(ellipse 80% 50% at 50% -20%,rgba(109,13,236,0.3) 0%,transparent 70%), radial-gradient(ellipse 50% 40% at 80% 80%,rgba(120,53,15,0.2) 0%,transparent 60%); }
+  .table-row { @apply border-t border-surface-800/60 hover:bg-surface-800/30 transition-colors; }
+}
