@@ -1,7 +1,7 @@
 const CLOUD_NAME = 'damr6r9op'
 const UPLOAD_PRESET = 'org-resources'
 
-export type CloudinaryFolder = 'gallery' | 'events' | 'receipts' | 'announcements' | 'logos'
+export type CloudinaryFolder = 'gallery' | 'events' | 'receipts' | 'announcements' | 'logos' | 'timeline'
 
 export interface CloudinaryResult {
   public_id: string
