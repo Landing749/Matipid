@@ -124,11 +124,11 @@ export function TimelineManager() {
       }
       const clean = JSON.parse(JSON.stringify(updated))
       await dbSet(`timeline/${editing.id}`, clean)
-      await saveVersion('timeline', editing.id, updated, user.uid, profile.email)
+      await saveVersion('timeline', editing.id, clean, user.uid, profile.email)
       await logActivity({
         userUid: user.uid, userEmail: profile.email, role: profile.role,
         action: 'UPDATE_TIMELINE_ENTRY', targetResource: 'timeline', targetId: editing.id,
-        previousValue: editing, newValue: updated,
+        previousValue: JSON.parse(JSON.stringify(editing)), newValue: clean,
       })
       toast.success('Timeline entry updated.')
     } else {
@@ -147,10 +147,10 @@ export function TimelineManager() {
       }
       const clean = JSON.parse(JSON.stringify(entry))
       await dbSet(`timeline/${id}`, clean)
-      await saveVersion('timeline', id, entry, user.uid, profile.email)
+      await saveVersion('timeline', id, clean, user.uid, profile.email)
       await logActivity({
         userUid: user.uid, userEmail: profile.email, role: profile.role,
-        action: 'CREATE_TIMELINE_ENTRY', targetResource: 'timeline', targetId: id, newValue: entry,
+        action: 'CREATE_TIMELINE_ENTRY', targetResource: 'timeline', targetId: id, newValue: clean,
       })
       toast.success('Timeline entry added.')
     }
