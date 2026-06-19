@@ -97,7 +97,7 @@ export function OfficersManager() {
     }
 
     if (editing) {
-      const updated = { ...editing, ...values, photoUrl, email: values.email || undefined }
+      const updated = JSON.parse(JSON.stringify({ ...editing, ...values, photoUrl, email: values.email || undefined }))
       await dbSet(`officers/${editing.id}`, updated)
       await logActivity({
         userUid: user.uid, userEmail: profile.email, role: profile.role,
@@ -114,7 +114,7 @@ export function OfficersManager() {
         photoUrl,
         order: officers.length,
       }
-      await dbSet(`officers/${id}`, officer)
+      await dbSet(`officers/${id}`, JSON.parse(JSON.stringify(officer)))
       await logActivity({
         userUid: user.uid, userEmail: profile.email, role: profile.role,
         action: 'CREATE_OFFICER', targetResource: 'officers', targetId: id,
