@@ -11,8 +11,25 @@ export function PortalLayout() {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <PortalHeader />
-        <main className="flex-1 overflow-y-auto p-6 hero-bg">
-          <PageTransition />
+        <main className="flex-1 overflow-y-auto p-6 relative" style={{
+          background: `
+            radial-gradient(ellipse 55% 50% at 50% -5%, rgba(124,26,255,0.18) 0%, transparent 60%),
+            radial-gradient(ellipse 30% 35% at 88% 90%, rgba(245,158,11,0.08) 0%, transparent 55%),
+            #09090b
+          `
+        }}>
+          {/* Subtle dot grid */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage: 'radial-gradient(circle, rgba(124,26,255,0.08) 1px, transparent 1px)',
+              backgroundSize: '28px 28px',
+              maskImage: 'radial-gradient(ellipse 90% 70% at 50% 0%, black 0%, transparent 80%)',
+            }}
+          />
+          <div className="relative z-10">
+            <PageTransition />
+          </div>
         </main>
       </div>
       <CommandPalette />
@@ -22,9 +39,10 @@ export function PortalLayout() {
         theme="dark"
         toastOptions={{
           style: {
-            background: 'hsl(240 5% 12%)',
-            border: '1px solid hsl(240 4% 20%)',
-            color: 'hsl(0 0% 90%)',
+            background: '#18181b',
+            border: '1px solid rgba(124,26,255,0.15)',
+            color: '#f4f4f5',
+            boxShadow: '0 8px 24px -4px rgba(0,0,0,0.5)',
           },
         }}
       />
