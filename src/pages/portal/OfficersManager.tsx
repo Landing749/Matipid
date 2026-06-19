@@ -23,7 +23,7 @@ interface Officer {
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
   position: z.string().min(1, 'Position is required'),
-  email: z.string().email('Valid email').optional().or(z.literal('')),
+  email: z.union([z.string().email('Enter a valid email'), z.literal('')]).optional(),
 })
 type FormValues = z.infer<typeof schema>
 
@@ -228,10 +228,15 @@ export function OfficersManager() {
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Photo */}
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-1">
             <label className="relative cursor-pointer group">
               {photoPreview ? (
-                <img src={photoPreview} alt="Photo" className="w-24 h-24 rounded-full object-cover border-2 border-surface-600 group-hover:border-brand-500 transition-colors" />
+                <div className="relative">
+                  <img src={photoPreview} alt="Photo" className="w-24 h-24 rounded-full object-cover border-2 border-surface-600 group-hover:border-brand-500 transition-colors" />
+                  <div className="absolute inset-0 rounded-full bg-surface-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Upload size={16} className="text-white" />
+                  </div>
+                </div>
               ) : (
                 <div className="w-24 h-24 rounded-full bg-surface-800 border-2 border-dashed border-surface-600 group-hover:border-brand-500 flex flex-col items-center justify-center gap-1 transition-colors">
                   <Upload size={16} className="text-surface-500" />
@@ -240,6 +245,7 @@ export function OfficersManager() {
               )}
               <input type="file" accept="image/*" className="sr-only" onChange={handlePhotoChange} />
             </label>
+            <span className="text-xs text-surface-600">Optional</span>
           </div>
 
           <div>

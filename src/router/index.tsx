@@ -6,6 +6,7 @@ import { ProtectedRoute } from './ProtectedRoute'
 // Public pages
 import { Home } from '@/pages/public/Home'
 import { Announcements } from '@/pages/public/Announcements'
+import { AnnouncementDetail } from '@/pages/public/AnnouncementDetail'
 import { FinancialTransparency } from '@/pages/public/FinancialTransparency'
 import { Events, Gallery, Timeline, OfficerList, About } from '@/pages/public/PublicPages'
 
@@ -32,6 +33,7 @@ import { EventsManager } from '@/pages/portal/EventsManager'
 import { BudgetTracker } from '@/pages/portal/BudgetTracker'
 import { CalendarView } from '@/pages/portal/CalendarView'
 import { MembersDirectory } from '@/pages/portal/MembersDirectory'
+import { TimelineManager } from '@/pages/portal/TimelineManager'
 
 export function AppRouter() {
   return (
@@ -41,6 +43,7 @@ export function AppRouter() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/announcements" element={<Announcements />} />
+          <Route path="/announcements/:id" element={<AnnouncementDetail />} />
           <Route path="/events" element={<Events />} />
           <Route path="/timeline" element={<Timeline />} />
           <Route path="/gallery" element={<Gallery />} />
@@ -81,6 +84,7 @@ export function AppRouter() {
           <Route path="search" element={<SearchPage />} />
           <Route path="calendar" element={<CalendarView />} />
           <Route path="members" element={<MembersDirectory />} />
+          <Route path="timeline" element={<TimelineManager />} />
         </Route>
 
         {/* Catch-all */}

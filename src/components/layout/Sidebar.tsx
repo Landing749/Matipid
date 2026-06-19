@@ -5,7 +5,7 @@ import {
   LayoutDashboard, DollarSign, ShieldCheck, ScrollText, History,
   HardDrive, Activity, BarChart2, Settings, Users, Database,
   Search, ChevronLeft, LogOut, ExternalLink,
-  Megaphone, Calendar, Image, Target, BookUser, CalendarDays
+  Megaphone, Calendar, Image, Target, BookUser, CalendarDays, Clock
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
@@ -24,6 +24,7 @@ const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', to: '/portal/dashboard' },
   { icon: Megaphone, label: 'Announcements', to: '/portal/announcements' },
   { icon: Calendar, label: 'Events', to: '/portal/events' },
+  { icon: Clock, label: 'Timeline', to: '/portal/timeline' },
   { icon: CalendarDays, label: 'Calendar', to: '/portal/calendar' },
   { icon: Image, label: 'Gallery', to: '/portal/gallery' },
   { icon: Users, label: 'Officers', to: '/portal/officers' },

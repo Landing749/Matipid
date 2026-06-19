@@ -234,14 +234,23 @@ export function Gallery() {
 
 // ─── Timeline ─────────────────────────────────────────────────────────────────
 
+interface TimelineEntry {
+  id: string
+  title: string
+  description: string
+  date: number
+  location?: string
+  coverImage?: string
+}
+
 export function Timeline() {
-  const [events, setEvents] = useState<Event[]>([])
+  const [entries, setEntries] = useState<TimelineEntry[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    dbGet<Record<string, Event>>('events').then((data) => {
+    dbGet<Record<string, TimelineEntry>>('timeline').then((data) => {
       if (data) {
-        setEvents(
+        setEntries(
           Object.entries(data)
             .map(([id, v]) => ({ ...v, id }))
             .sort((a, b) => b.date - a.date)
@@ -277,15 +286,15 @@ export function Timeline() {
               </div>
             ))}
           </div>
-        ) : events.length === 0 ? (
-          <EmptyState icon={Clock} title="No events in timeline" description="Events will appear here as they are created." />
+        ) : entries.length === 0 ? (
+          <EmptyState icon={Clock} title="No timeline entries yet" description="Milestones will appear here as they are added." />
         ) : (
           <div className="relative">
             <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-600/60 via-surface-700 to-transparent" />
             <div className="space-y-0">
-              {events.map((event, i) => (
+              {entries.map((entry, i) => (
                 <motion.div
-                  key={event.id}
+                  key={entry.id}
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
@@ -297,15 +306,15 @@ export function Timeline() {
                     <div className="w-0.5 flex-1 bg-surface-800/40 mt-1" />
                   </div>
                   <div className="flex-1 pb-10 min-w-0">
-                    <p className="text-xs text-brand-400 font-mono mb-1">{formatDate(event.date)}</p>
-                    <h2 className="text-base font-semibold text-surface-100 mb-1 group-hover:text-brand-300 transition-colors">{event.title}</h2>
-                    <p className="text-surface-400 text-sm line-clamp-3">{event.description}</p>
-                    {event.location && (
-                      <p className="text-xs text-surface-500 mt-2">📍 {event.location}</p>
+                    <p className="text-xs text-brand-400 font-mono mb-1">{formatDate(entry.date)}</p>
+                    <h2 className="text-base font-semibold text-surface-100 mb-1 group-hover:text-brand-300 transition-colors">{entry.title}</h2>
+                    <p className="text-surface-400 text-sm line-clamp-3">{entry.description}</p>
+                    {entry.location && (
+                      <p className="text-xs text-surface-500 mt-2">📍 {entry.location}</p>
                     )}
-                    {event.coverImage && (
+                    {entry.coverImage && (
                       <div className="mt-3 h-32 w-full sm:w-64 rounded-xl overflow-hidden">
-                        <img src={event.coverImage} alt={event.title} className="w-full h-full object-cover" />
+                        <img src={entry.coverImage} alt={entry.title} className="w-full h-full object-cover" />
                       </div>
                     )}
                   </div>

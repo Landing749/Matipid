@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Megaphone, Pin, Search } from 'lucide-react'
+import { Megaphone, Pin, Search, ArrowRight } from 'lucide-react'
 import { dbGet } from '@/lib/firebase'
 import { formatDate } from '@/lib/utils'
 import { EmptyState, Skeleton } from '@/components/ui'
@@ -88,31 +89,44 @@ export function Announcements() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="card-hover overflow-hidden"
               >
-                <div className="flex gap-4">
+                <Link
+                  to={`/announcements/${item.id}`}
+                  className="card-hover overflow-hidden flex gap-4 group block"
+                >
                   {item.coverImage && (
                     <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
-                      <img src={item.coverImage} alt={item.title} className="w-full h-full object-cover" />
+                      <img
+                        src={item.coverImage}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-2 mb-1">
                       {item.pinned && (
-                        <span className="badge-gold flex-shrink-0">
+                        <span className="badge-gold flex-shrink-0 flex items-center gap-1">
                           <Pin size={10} /> Pinned
                         </span>
                       )}
-                      <h2 className="font-semibold text-surface-100 leading-snug">{item.title}</h2>
+                      <h2 className="font-semibold text-surface-100 leading-snug group-hover:text-brand-300 transition-colors">
+                        {item.title}
+                      </h2>
                     </div>
                     <p className="text-surface-400 text-sm line-clamp-2 mb-3">{item.content}</p>
-                    <div className="flex items-center gap-3 text-xs text-surface-500">
-                      <span>{item.author}</span>
-                      <span>·</span>
-                      <span>{formatDate(item.createdAt)}</span>
+                    <div className="flex items-center justify-between text-xs text-surface-500">
+                      <span className="flex items-center gap-3">
+                        <span>{item.author}</span>
+                        <span>·</span>
+                        <span>{formatDate(item.createdAt)}</span>
+                      </span>
+                      <span className="flex items-center gap-1 text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        Read more <ArrowRight size={11} />
+                      </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               </motion.div>
             ))}
           </div>

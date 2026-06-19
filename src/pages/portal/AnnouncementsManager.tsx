@@ -225,8 +225,13 @@ export function AnnouncementsManager() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Cover image */}
           <div>
-            <label className="label">Cover Image</label>
-            <label className="relative block cursor-pointer group">
+            <div className="flex items-center justify-between mb-1">
+              <label className="label !mb-0">Cover Image</label>
+              <span className="text-[11px] text-surface-500 bg-surface-800/60 px-2 py-0.5 rounded-md">
+                Recommended: 1200 × 630 px · 16:9 · max 2 MB
+              </span>
+            </div>
+            <label className="relative block cursor-pointer group mt-1">
               {coverPreview ? (
                 <div className="relative h-36 rounded-xl overflow-hidden border border-surface-700">
                   <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
