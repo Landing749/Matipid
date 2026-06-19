@@ -1,0 +1,194 @@
+import { useState } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  LayoutDashboard, DollarSign, ShieldCheck, ScrollText, History,
+  HardDrive, Activity, BarChart2, Settings, Users, Database,
+  Search, ChevronLeft, LogOut, ExternalLink,
+  Megaphone, Calendar, Image, Target, BookUser, CalendarDays, Clock
+} from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/lib/utils'
+import { Logo } from '@/components/Logo'
+import { useSiteSettings } from '@/lib/useSiteSettings'
+
+interface NavItem {
+  icon: React.ElementType
+  label: string
+  to: string
+  roles?: string[]
+  badge?: string
+}
+
+const navItems: NavItem[] = [
+  { icon: LayoutDashboard, label: 'Dashboard', to: '/portal/dashboard' },
+  { icon: Megaphone, label: 'Announcements', to: '/portal/announcements' },
+  { icon: Calendar, label: 'Events', to: '/portal/events' },
+  { icon: Clock, label: 'Timeline', to: '/portal/timeline' },
+  { icon: CalendarDays, label: 'Calendar', to: '/portal/calendar' },
+  { icon: Image, label: 'Gallery', to: '/portal/gallery' },
+  { icon: Users, label: 'Officers', to: '/portal/officers' },
+  { icon: BookUser, label: 'Members', to: '/portal/members' },
+  { icon: DollarSign, label: 'Finance', to: '/portal/finance', roles: ['admin', 'treasurer', 'auditor'] },
+  { icon: Target, label: 'Budget', to: '/portal/budget', roles: ['admin', 'treasurer', 'auditor'] },
+  { icon: ShieldCheck, label: 'Audit', to: '/portal/audit', roles: ['admin', 'auditor'] },
+  { icon: ScrollText, label: 'Activity Log', to: '/portal/logs' },
+  { icon: History, label: 'Version History', to: '/portal/versions', roles: ['admin'] },
+  { icon: HardDrive, label: 'Backup', to: '/portal/backup', roles: ['admin'] },
+  { icon: Activity, label: 'System Health', to: '/portal/health', roles: ['admin'] },
+  { icon: BarChart2, label: 'Analytics', to: '/portal/analytics' },
+  { icon: Database, label: 'Storage', to: '/portal/storage', roles: ['admin'] },
+  { icon: Users, label: 'Users', to: '/portal/users', roles: ['admin'] },
+  { icon: Settings, label: 'Settings', to: '/portal/settings', roles: ['admin'] },
+]
+
+export function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false)
+  const { profile, role, signOut } = useAuth()
+  const { data: settings } = useSiteSettings()
+  const navigate = useNavigate()
+
+  const visibleItems = navItems.filter(
+    (item) => !item.roles || (role && item.roles.includes(role))
+  )
+
+  async function handleSignOut() {
+    await signOut()
+    navigate('/login')
+  }
+
+  return (
+    <motion.aside
+      animate={{ width: collapsed ? 72 : 256 }}
+      transition={{ duration: 0.2, ease: 'easeInOut' }}
+      className="relative flex flex-col h-screen bg-surface-900/80 backdrop-blur-xl border-r border-surface-800/60 overflow-hidden flex-shrink-0 z-30"
+    >
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-4 h-16 border-b border-surface-800/60 flex-shrink-0">
+        <Logo size={36} />
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.15 }}
+              className="overflow-hidden"
+            >
+              <span className="text-sm font-bold text-surface-100 whitespace-nowrap">
+                {settings?.section ? `${settings.section}` : 'MATIPID'}
+              </span>
+              <p className="text-xs text-surface-500 whitespace-nowrap">Officer Portal</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Search */}
+      {!collapsed && (
+        <div className="px-3 pt-3">
+          <NavLink
+            to="/portal/search"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-surface-800/50 text-surface-400 text-sm hover:bg-surface-800 hover:text-surface-200 hover:ring-1 hover:ring-brand-500/30 transition-all group"
+          >
+            <Search className="w-4 h-4 group-hover:text-brand-400 transition-colors" />
+            <span className="flex-1 text-left">Search…</span>
+            <kbd className="text-xs bg-surface-700 px-1.5 py-0.5 rounded text-surface-500 font-mono group-hover:text-surface-300 transition-colors">⌘K</kbd>
+          </NavLink>
+        </div>
+      )}
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5 no-scrollbar">
+        {visibleItems.map((item, i) => (
+          <motion.div
+            key={item.to}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.25, delay: i * 0.025 }}
+          >
+          <NavLink
+            to={item.to}
+            title={collapsed ? item.label : undefined}
+            className={({ isActive }) =>
+              cn(
+                'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group',
+                isActive
+                  ? 'bg-brand-600/15 text-brand-300'
+                  : 'text-surface-400 hover:bg-surface-800/60 hover:text-surface-100 active:scale-[0.98]'
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <motion.span
+                    layoutId="sidebar-active"
+                    className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-gradient-to-b from-brand-400 to-brand-600"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <item.icon className={cn('w-4.5 h-4.5 flex-shrink-0 transition-transform group-hover:scale-110', isActive ? 'text-brand-400' : 'text-surface-500 group-hover:text-surface-300')} size={18} />
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="whitespace-nowrap"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </>
+            )}
+          </NavLink>
+          </motion.div>
+        ))}
+      </nav>
+
+      {/* Footer */}
+      <div className="border-t border-surface-800/60 p-3 space-y-1 flex-shrink-0">
+        <NavLink
+          to="/"
+          title={collapsed ? 'Public Site' : undefined}
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-surface-500 hover:bg-surface-800/60 hover:text-surface-300 transition-all group"
+        >
+          <ExternalLink size={16} className="flex-shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          {!collapsed && <span>Public Site</span>}
+        </NavLink>
+
+        {/* Profile */}
+        <div className={cn('flex items-center gap-3 px-3 py-2 rounded-xl transition-colors hover:bg-surface-800/40', collapsed && 'justify-center')}>
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center flex-shrink-0 text-xs font-bold text-white uppercase ring-2 ring-surface-900 shadow-md shadow-brand-600/20">
+            {profile?.email?.[0] ?? 'U'}
+          </div>
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-surface-200 truncate">{profile?.email}</p>
+              <p className="text-xs text-surface-500 capitalize">{role}</p>
+            </div>
+          )}
+          {!collapsed && (
+            <button onClick={handleSignOut} className="text-surface-600 hover:text-red-400 hover:scale-110 transition-all p-1">
+              <LogOut size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Collapse toggle */}
+      <motion.button
+        onClick={() => setCollapsed((v) => !v)}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="absolute top-4 -right-3 z-50 w-6 h-6 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-surface-400 hover:text-surface-100 hover:bg-surface-700 transition-colors shadow-md"
+      >
+        <motion.span animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.25 }}>
+          <ChevronLeft size={12} />
+        </motion.span>
+      </motion.button>
+    </motion.aside>
+  )
+}
