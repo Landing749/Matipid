@@ -122,7 +122,8 @@ export function TimelineManager() {
         coverImage,
         updatedAt: now,
       }
-      await dbSet(`timeline/${editing.id}`, updated)
+      const clean = JSON.parse(JSON.stringify(updated))
+      await dbSet(`timeline/${editing.id}`, clean)
       await saveVersion('timeline', editing.id, updated, user.uid, profile.email)
       await logActivity({
         userUid: user.uid, userEmail: profile.email, role: profile.role,
@@ -144,7 +145,8 @@ export function TimelineManager() {
         createdAt: now,
         updatedAt: now,
       }
-      await dbSet(`timeline/${id}`, entry)
+      const clean = JSON.parse(JSON.stringify(entry))
+      await dbSet(`timeline/${id}`, clean)
       await saveVersion('timeline', id, entry, user.uid, profile.email)
       await logActivity({
         userUid: user.uid, userEmail: profile.email, role: profile.role,
