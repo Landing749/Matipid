@@ -38,7 +38,8 @@ npm install
 
 2. Firebase is pre-configured. Apply the rules in `firebase-rtdb-rules.json`
    (Realtime Database → Rules tab) — it covers every node used by the app,
-   including the newer `comments`, `reactions`, `suggestions`, and `rsvps/list`
+   including the newer `comments`, `reactions`, `suggestions`, `photoSubmissions`,
+   and `rsvps/list`
    nodes (public can create, only officers can moderate/delete).
 
 3. Start dev server

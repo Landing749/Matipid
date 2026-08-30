@@ -7,6 +7,8 @@ import { Sun, Moon } from 'lucide-react'
 import { Toaster } from 'sonner'
 import { Logo } from '@/components/Logo'
 import { useSiteSettings } from '@/lib/useSiteSettings'
+import { CookieConsentBanner } from '@/components/CookieConsentBanner'
+import { ClassAnthemPlayer } from '@/components/ClassAnthemPlayer'
 
 const navLinks = [
   { to: '/', label: 'Home', end: true },
@@ -15,6 +17,7 @@ const navLinks = [
   { to: '/timeline', label: 'Timeline' },
   { to: '/gallery', label: 'Gallery' },
   { to: '/finances', label: 'Transparency' },
+  { to: '/year-in-review', label: 'Recap' },
   { to: '/officers', label: 'Officers' },
   { to: '/suggestions', label: 'Suggestions' },
   { to: '/about', label: 'About' },
@@ -137,11 +140,17 @@ export function PublicLayout() {
             <span className="text-sm font-semibold text-surface-400">{sectionName}</span>
           </div>
           <p className="text-xs text-surface-500">Grade 8 • Section Management & Transparency Platform</p>
-          <p className="text-xs text-surface-500">© {new Date().getFullYear()} ATH Studios</p>
+          <div className="flex items-center gap-3">
+            <Link to="/privacy" className="text-xs text-surface-500 hover:text-surface-300 underline">Privacy</Link>
+            <Link to="/terms" className="text-xs text-surface-500 hover:text-surface-300 underline">Terms</Link>
+            <p className="text-xs text-surface-500">© {new Date().getFullYear()} ATH Studios</p>
+          </div>
         </div>
       </footer>
 
       <Toaster position="top-right" theme="light" />
+      <CookieConsentBanner />
+      <ClassAnthemPlayer />
     </div>
   )
 }

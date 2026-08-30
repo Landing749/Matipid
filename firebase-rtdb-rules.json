@@ -32,6 +32,20 @@
         }
       }
     },
+    "commentReports": {
+      ".read": true,
+      "$resourceType": {
+        "$resourceId": {
+          "$commentId": {
+            ".write": "auth != null",
+            "count": {
+              ".write": true,
+              ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() == data.val() + 1)"
+            }
+          }
+        }
+      }
+    },
     "reactions": {
       ".read": true,
       "$resourceType": {
@@ -50,6 +64,13 @@
         ".read": "auth != null",
         ".write": "auth != null || !data.exists()",
         ".validate": "newData.hasChildren(['message', 'createdAt']) && newData.child('message').isString() && newData.child('message').val().length > 0 && newData.child('message').val().length <= 2000"
+      }
+    },
+    "photoSubmissions": {
+      "$submissionId": {
+        ".read": "auth != null",
+        ".write": "auth != null || !data.exists()",
+        ".validate": "newData.hasChildren(['url', 'publicId', 'createdAt', 'status']) && newData.child('url').isString() && (auth != null || newData.child('status').val() == 'pending') && (!newData.hasChild('caption') || newData.child('caption').val().length <= 500) && (!newData.hasChild('name') || newData.child('name').val().length <= 60)"
       }
     },
     "audit_records": { ".read": "auth != null", ".write": "auth != null" },

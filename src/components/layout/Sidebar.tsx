@@ -5,7 +5,7 @@ import {
   LayoutDashboard, DollarSign, ShieldCheck, ScrollText, History,
   HardDrive, Activity, BarChart2, Settings, Users, Database,
   Search, ChevronLeft, LogOut, ExternalLink,
-  Megaphone, Calendar, Image, Target, BookUser, CalendarDays, Clock, Lightbulb
+  Megaphone, Calendar, Image, Target, BookUser, CalendarDays, Clock, Lightbulb, Camera
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
@@ -34,6 +34,7 @@ const navGroups: NavGroup[] = [
       { icon: Clock, label: 'Timeline', to: '/portal/timeline' },
       { icon: CalendarDays, label: 'Calendar', to: '/portal/calendar' },
       { icon: Image, label: 'Gallery', to: '/portal/gallery' },
+      { icon: Camera, label: 'Photo Submissions', to: '/portal/photo-submissions' },
     ],
   },
   {

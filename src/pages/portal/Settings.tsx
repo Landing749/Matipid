@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Settings as SettingsIcon, Save, Upload, Globe, Palette, Info, AlertTriangle, RotateCcw, X, Image as ImageIcon } from 'lucide-react'
+import { Settings as SettingsIcon, Save, Upload, Globe, Palette, Info, AlertTriangle, RotateCcw, X, Image as ImageIcon, Music2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { dbGet, dbSet, logActivity } from '@/lib/firebase'
@@ -27,6 +27,8 @@ interface SiteSettings {
   }
   logoUrl?: string
   bannerImage?: string
+  anthemAudioUrl?: string
+  anthemEmbedUrl?: string
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -349,6 +351,32 @@ export function Settings() {
                 <input className="input" placeholder={`https://${platform}.com/...`} {...register(`socialLinks.${platform}`)} />
               </div>
             ))}
+          </div>
+        </motion.div>
+
+        {/* Section anthem */}
+        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={3.5} className="card-hover">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="icon-tile bg-brand-600/15 text-brand-600">
+              <Music2 size={16} />
+            </div>
+            <h2 className="text-sm font-semibold text-surface-200">Section Anthem</h2>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="label">Playlist / video embed URL</label>
+              <input className="input" placeholder="https://youtube.com/watch?v=... or https://open.spotify.com/playlist/..." {...register('anthemEmbedUrl')} />
+              <p className="text-xs text-surface-500 mt-1">Shown as a video/playlist embed on the Home and About pages. Leave blank to hide.</p>
+            </div>
+            <div>
+              <label className="label">Short anthem clip (.mp3 URL)</label>
+              <input className="input" placeholder="https://.../anthem.mp3" {...register('anthemAudioUrl')} />
+              <p className="text-xs text-surface-500 mt-1">
+                Plays once, quietly, the moment a visitor accepts the cookie notice. A visible pause/mute
+                control always appears alongside it. Leave blank to disable. Host the file yourself
+                (e.g. via Cloudinary) — keep it short and make sure you have the rights to use it.
+              </p>
+            </div>
           </div>
         </motion.div>
 

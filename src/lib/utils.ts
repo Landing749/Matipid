@@ -31,6 +31,31 @@ export function truncate(str: string, maxLen: number): string {
   return str.length > maxLen ? str.slice(0, maxLen) + '...' : str
 }
 
+/** Converts a normal YouTube or Spotify link into its embeddable iframe `src`.
+ *  Returns null if the URL doesn't match a known pattern, so callers can hide the embed
+ *  instead of rendering a broken iframe. */
+export function toEmbedUrl(url: string): { src: string; provider: 'youtube' | 'spotify' } | null {
+  try {
+    const u = new URL(url)
+    if (u.hostname.includes('youtube.com') || u.hostname === 'youtu.be') {
+      const id = u.hostname === 'youtu.be' ? u.pathname.slice(1) : u.searchParams.get('v')
+      const playlist = u.searchParams.get('list')
+      if (id) return { src: `https://www.youtube.com/embed/${id}`, provider: 'youtube' }
+      if (playlist) return { src: `https://www.youtube.com/embed/videoseries?list=${playlist}`, provider: 'youtube' }
+      return null
+    }
+    if (u.hostname.includes('spotify.com')) {
+      // e.g. /playlist/xyz or /track/xyz -> /embed/playlist/xyz
+      const parts = u.pathname.split('/').filter(Boolean)
+      if (parts.length >= 2) return { src: `https://open.spotify.com/embed/${parts[0]}/${parts[1]}`, provider: 'spotify' }
+      return null
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
 export function slugify(str: string): string {
   return str
     .toLowerCase()

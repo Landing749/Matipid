@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search, LayoutDashboard, DollarSign, ShieldCheck, ScrollText,
   History, HardDrive, Activity, BarChart2, Settings, Users,
-  Database, Home, Megaphone, Calendar, Image, Eye, X
+  Database, Home, Megaphone, Calendar, Image, Eye, X, Camera
 } from 'lucide-react'
 
 interface Command {
@@ -21,6 +21,7 @@ const commands: Command[] = [
   { id: 'announcements-mgr', label: 'Announcements', icon: Megaphone, to: '/portal/announcements', category: 'Content' },
   { id: 'events-mgr', label: 'Events', icon: Calendar, to: '/portal/events', category: 'Content' },
   { id: 'gallery-mgr', label: 'Gallery', icon: Image, to: '/portal/gallery', category: 'Content' },
+  { id: 'photo-submissions', label: 'Photo Submissions', icon: Camera, to: '/portal/photo-submissions', category: 'Content' },
   { id: 'officers-mgr', label: 'Officers', icon: Users, to: '/portal/officers', category: 'Content' },
   // Portal — Admin
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, to: '/portal/dashboard', category: 'Portal' },
@@ -39,6 +40,7 @@ const commands: Command[] = [
   { id: 'ann-pub', label: 'Announcements', icon: Megaphone, to: '/announcements', category: 'Public' },
   { id: 'events-pub', label: 'Events', icon: Calendar, to: '/events', category: 'Public' },
   { id: 'gallery-pub', label: 'Gallery', icon: Image, to: '/gallery', category: 'Public' },
+  { id: 'share-photos-pub', label: 'Share Your Photos', icon: Camera, to: '/share-photos', category: 'Public' },
   { id: 'transparency', label: 'Financial Transparency', icon: Eye, to: '/finances', category: 'Public' },
 ]
 

@@ -6,7 +6,7 @@ import { auth } from '@/lib/firebase'
  * Left blank until deployed — export buttons show a clear error instead of
  * silently failing.
  */
-export const WORKER_URL = ' https://matipid-export.paymongo.workers.dev'
+export const WORKER_URL = 'https://matipid-export.paymongo.workers.dev'
 
 export type ExportKind = 'finance' | 'audit'
 export type ExportFormat = 'pdf' | 'xlsx'

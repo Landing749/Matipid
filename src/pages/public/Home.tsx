@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, DollarSign, Calendar, Image, Megaphone, Shield, Users, Sparkles, X, ImagePlus } from 'lucide-react'
+import { ArrowRight, DollarSign, Calendar, Image, Megaphone, Shield, Users, Sparkles, X, ImagePlus, Heart } from 'lucide-react'
 import { isSameDay } from 'date-fns'
 import { dbGet } from '@/lib/firebase'
 import { formatDate, cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui'
 import { Logo } from '@/components/Logo'
+import { EventCountdown } from '@/components/EventCountdown'
+import { AnthemEmbed } from '@/components/AnthemEmbed'
 
 interface Settings {
   siteTitle?: string
@@ -45,6 +47,11 @@ interface GalleryImage {
   uploadedAt: number
 }
 
+interface HighlightPhoto extends GalleryImage {
+  totalLikes: number
+  isThisMonth: boolean
+}
+
 function isPubliclyVisible(a: Announcement) {
   if (a.status === 'draft') return false
   if (a.publishAt && a.publishAt > Date.now()) return false
@@ -67,12 +74,11 @@ const tileIn = {
   viewport: { once: true, margin: '-60px' },
 }
 
-const stats = [
-  { icon: Calendar, label: 'Events Held', value: '12+' },
-  { icon: Image, label: 'Gallery Photos', value: '200+' },
-  { icon: Megaphone, label: 'Announcements', value: '30+' },
-  { icon: Users, label: 'Officers', value: '10' },
-]
+interface StatDef {
+  icon: typeof Calendar
+  label: string
+  value: number
+}
 
 const features = [
   {
@@ -105,6 +111,13 @@ export function Home() {
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [nextEvent, setNextEvent] = useState<EventItem | null>(null)
   const [recentPhotos, setRecentPhotos] = useState<GalleryImage[]>([])
+  const [highlightPhoto, setHighlightPhoto] = useState<HighlightPhoto | null>(null)
+  const [stats, setStats] = useState<StatDef[]>([
+    { icon: Calendar, label: 'Events Held', value: 0 },
+    { icon: Image, label: 'Gallery Photos', value: 0 },
+    { icon: Megaphone, label: 'Announcements', value: 0 },
+    { icon: Users, label: 'Officers', value: 0 },
+  ])
 
   useEffect(() => {
     Promise.all([
@@ -112,16 +125,21 @@ export function Home() {
       dbGet<Record<string, Announcement>>('announcements'),
       dbGet<Record<string, { title: string; date: number; location?: string }>>('events'),
       dbGet<Record<string, GalleryImage>>('gallery'),
-    ]).then(([s, ann, events, gallery]) => {
+      dbGet<Record<string, unknown>>('officers'),
+      dbGet<Record<string, Record<string, { count: number }>>>('reactions/photo'),
+    ]).then(([s, ann, events, gallery, officers, photoReactions]) => {
       setSettings(s)
+      let publishedAnnouncements = 0
       if (ann) {
         const list = Object.entries(ann)
           .map(([id, v]) => ({ ...v, id }))
           .filter(isPubliclyVisible)
           .sort((a, b) => b.createdAt - a.createdAt)
+        publishedAnnouncements = list.length
         const pinned = list.find((a) => a.pinned) ?? list[0]
         setAnnouncement(pinned ?? null)
       }
+      let eventsHeld = 0
       if (events) {
         const now = new Date()
         const list: EventItem[] = Object.entries(events).map(([id, v]) => ({ id, ...v }))
@@ -148,15 +166,45 @@ export function Home() {
           .filter((e) => e.date >= now.getTime())
           .sort((a, b) => a.date - b.date)[0]
         setNextEvent(upcomingOnly ?? null)
+
+        eventsHeld = list.filter((e) => e.date <= now.getTime()).length
       }
+      let galleryPhotos = 0
       if (gallery) {
-        setRecentPhotos(
-          Object.entries(gallery)
-            .map(([id, v]) => ({ ...v, id }))
-            .sort((a, b) => b.uploadedAt - a.uploadedAt)
-            .slice(0, 4)
-        )
+        const list = Object.entries(gallery).map(([id, v]) => ({ ...v, id }))
+        galleryPhotos = list.length
+        setRecentPhotos(list.sort((a, b) => b.uploadedAt - a.uploadedAt).slice(0, 4))
+
+        // Photo of the Month — most reactions among photos uploaded this
+        // calendar month, falling back to the most-liked photo overall.
+        if (photoReactions) {
+          const likesFor = (id: string) =>
+            Object.values(photoReactions[id] ?? {}).reduce((sum, r) => sum + (r.count ?? 0), 0)
+
+          const now = new Date()
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+
+          const withLikes = list
+            .map((img) => ({ ...img, totalLikes: likesFor(img.id) }))
+            .filter((img) => img.totalLikes > 0)
+
+          const thisMonth = withLikes.filter((img) => img.uploadedAt >= monthStart)
+          const pool = thisMonth.length > 0 ? thisMonth : withLikes
+          const top = pool.sort((a, b) => b.totalLikes - a.totalLikes)[0]
+
+          if (top) {
+            setHighlightPhoto({ ...top, isThisMonth: thisMonth.length > 0 })
+          }
+        }
       }
+      const officerCount = officers ? Object.keys(officers).length : 0
+
+      setStats([
+        { icon: Calendar, label: 'Events Held', value: eventsHeld },
+        { icon: Image, label: 'Gallery Photos', value: galleryPhotos },
+        { icon: Megaphone, label: 'Announcements', value: publishedAnnouncements },
+        { icon: Users, label: 'Officers', value: officerCount },
+      ])
     }).finally(() => setLoading(false))
   }, [])
 
@@ -293,6 +341,15 @@ export function Home() {
         </div>
       </section>
 
+      {/* ============ Countdown to next event ============ */}
+      {!loading && nextEvent && (
+        <section className="max-w-2xl mx-auto px-4 sm:px-6 pb-2">
+          <motion.div {...fadeUp}>
+            <EventCountdown event={nextEvent} />
+          </motion.div>
+        </section>
+      )}
+
       {/* ============ What's New digest ============ */}
       {!loading && (announcement || nextEvent || recentPhotos.length > 0) && (
         <section className="max-w-5xl mx-auto px-4 sm:px-6 -mt-2 pb-4">
@@ -368,6 +425,38 @@ export function Home() {
         </section>
       )}
 
+      {/* ============ Photo of the Month ============ */}
+      {!loading && highlightPhoto && (
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
+          <motion.div {...tileIn} transition={{ duration: 0.4 }}>
+            <Link
+              to={`/gallery?photo=${highlightPhoto.id}`}
+              className="bento-tile group flex items-center gap-4 sm:gap-5 !p-3 sm:!p-4"
+            >
+              <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-xl overflow-hidden flex-shrink-0">
+                <img
+                  src={highlightPhoto.url}
+                  alt={highlightPhoto.caption ?? ''}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] text-surface-500 uppercase tracking-wider font-semibold mb-1">
+                  {highlightPhoto.isThisMonth ? 'Photo of the Month' : 'Most-loved Photo'}
+                </p>
+                <p className="text-sm sm:text-base font-semibold text-surface-100 truncate group-hover:text-brand-600 transition-colors">
+                  {highlightPhoto.caption || 'A favorite from the gallery'}
+                </p>
+                <p className="flex items-center gap-1.5 text-xs text-surface-500 mt-1.5">
+                  <Heart size={12} className="text-red-500 fill-red-500" />
+                  {highlightPhoto.totalLikes} reaction{highlightPhoto.totalLikes === 1 ? '' : 's'}
+                </p>
+              </div>
+            </Link>
+          </motion.div>
+        </section>
+      )}
+
       {/* ============ Bento grid ============ */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-20 space-y-4">
 
@@ -426,6 +515,11 @@ export function Home() {
               </div>
             </motion.div>
           ))}
+        </div>
+
+        {/* Section anthem, if configured */}
+        <div className="pt-6">
+          <AnthemEmbed />
         </div>
 
         {/* Section label */}

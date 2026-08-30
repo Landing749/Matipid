@@ -5,6 +5,10 @@ export interface SiteSettingsBrief {
   siteTitle?: string
   section?: string
   logoUrl?: string
+  /** Direct link to a short .mp3 — played once when a visitor accepts the cookie banner, and available in the mini player. */
+  anthemAudioUrl?: string
+  /** YouTube or Spotify URL for the full playlist/anthem embed shown on Home/About. */
+  anthemEmbedUrl?: string
 }
 
 export function useSiteSettings() {

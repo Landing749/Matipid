@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, Image as ImageIcon, Clock, Users, Info, ExternalLink, X, ChevronLeft, ChevronRight, LayoutGrid, MapPin, Link2, Check, Search } from 'lucide-react'
+import { Calendar, Image as ImageIcon, Clock, Users, Info, X, ChevronLeft, ChevronRight, LayoutGrid, MapPin, Link2, Check, Search } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   isSameDay, isSameMonth, isToday, addMonths, subMonths,
@@ -11,6 +11,9 @@ import { dbGet } from '@/lib/firebase'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { EmptyState, Skeleton, Modal } from '@/components/ui'
+import { AnthemEmbed } from '@/components/AnthemEmbed'
+import { PhotoLightbox } from '@/components/PhotoLightbox'
+import { DownloadAllButton } from '@/components/DownloadAllButton'
 
 interface Event {
   id: string
@@ -553,12 +556,18 @@ export function Events() {
 // ─── Gallery ─────────────────────────────────────────────────────────────────
 
 export function Gallery() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [images, setImages] = useState<GalleryImage[]>([])
+  const [events, setEvents] = useState<{ id: string; title: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [lightbox, setLightbox] = useState<number | null>(null)
+  const [eventFilter, setEventFilter] = useState<string>(() => searchParams.get('event') ?? '')
 
   useEffect(() => {
-    dbGet<Record<string, GalleryImage>>('gallery').then((data) => {
+    Promise.all([
+      dbGet<Record<string, GalleryImage>>('gallery'),
+      dbGet<Record<string, { title: string }>>('events'),
+    ]).then(([data, evData]) => {
       if (data) {
         setImages(
           Object.entries(data)
@@ -566,19 +575,65 @@ export function Gallery() {
             .sort((a, b) => b.uploadedAt - a.uploadedAt)
         )
       }
+      if (evData) {
+        setEvents(Object.entries(evData).map(([id, v]) => ({ id, title: v.title })))
+      }
     }).finally(() => setLoading(false))
   }, [])
 
+  const filteredImages = useMemo(
+    () => (eventFilter ? images.filter((img) => img.eventId === eventFilter) : images),
+    [images, eventFilter]
+  )
+
+  // Event tabs — only show events that actually have photos.
+  const eventTabs = useMemo(() => {
+    const idsWithPhotos = new Set(images.map((img) => img.eventId).filter(Boolean))
+    return events.filter((e) => idsWithPhotos.has(e.id))
+  }, [images, events])
+
+  function selectEvent(id: string) {
+    setEventFilter(id)
+    setLightbox(null)
+    const next = new URLSearchParams(searchParams)
+    if (id) next.set('event', id)
+    else next.delete('event')
+    next.delete('photo')
+    setSearchParams(next, { replace: true })
+  }
+
+  // Deep-link straight into a shared photo (?photo=<id>), once images are loaded.
   useEffect(() => {
-    function handler(e: KeyboardEvent) {
-      if (lightbox === null) return
-      if (e.key === 'ArrowRight') setLightbox((v) => (v !== null ? Math.min(v + 1, images.length - 1) : null))
-      if (e.key === 'ArrowLeft') setLightbox((v) => (v !== null ? Math.max(v - 1, 0) : null))
-      if (e.key === 'Escape') setLightbox(null)
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [lightbox, images.length])
+    if (loading) return
+    const photoId = searchParams.get('photo')
+    if (!photoId) return
+    const pool = eventFilter ? filteredImages : images
+    const idx = pool.findIndex((img) => img.id === photoId)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration of the lightbox from the URL, not derived render state
+    if (idx !== -1) setLightbox(idx)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading])
+
+  function openLightbox(i: number) {
+    setLightbox(i)
+    const next = new URLSearchParams(searchParams)
+    next.set('photo', filteredImages[i].id)
+    setSearchParams(next, { replace: true })
+  }
+
+  function changeLightbox(i: number) {
+    setLightbox(i)
+    const next = new URLSearchParams(searchParams)
+    next.set('photo', filteredImages[i].id)
+    setSearchParams(next, { replace: true })
+  }
+
+  function closeLightbox() {
+    setLightbox(null)
+    const next = new URLSearchParams(searchParams)
+    next.delete('photo')
+    setSearchParams(next, { replace: true })
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
@@ -589,7 +644,56 @@ export function Gallery() {
           </div>
           <h1 className="text-2xl font-bold text-surface-100">Gallery</h1>
         </div>
-        <p className="text-surface-500 text-sm mb-8">Memories captured from every section event.</p>
+        <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
+          <p className="text-surface-500 text-sm">Memories captured from every section event.</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            {filteredImages.length > 0 && (
+              <DownloadAllButton
+                photos={filteredImages}
+                zipFilename={
+                  eventFilter
+                    ? `${(eventTabs.find((e) => e.id === eventFilter)?.title ?? 'event').replace(/[^\w\- ]+/g, '').trim() || 'event'}-photos.zip`
+                    : 'gallery-photos.zip'
+                }
+              />
+            )}
+            <Link to="/share-photos" className="btn-secondary text-xs gap-1.5 shrink-0">
+              <ImageIcon size={13} />
+              Share your photos
+            </Link>
+          </div>
+        </div>
+
+        {/* Per-event filter tabs */}
+        {!loading && eventTabs.length > 0 && (
+          <div className="flex items-center gap-2 mb-8 flex-wrap">
+            <button
+              onClick={() => selectEvent('')}
+              className={cn(
+                'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
+                !eventFilter
+                  ? 'border-brand-600 bg-brand-600/15 text-brand-500'
+                  : 'border-surface-700 text-surface-400 hover:border-surface-500 hover:bg-surface-800'
+              )}
+            >
+              All events
+            </button>
+            {eventTabs.map((ev) => (
+              <button
+                key={ev.id}
+                onClick={() => selectEvent(ev.id)}
+                className={cn(
+                  'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
+                  eventFilter === ev.id
+                    ? 'border-brand-600 bg-brand-600/15 text-brand-500'
+                    : 'border-surface-700 text-surface-400 hover:border-surface-500 hover:bg-surface-800'
+                )}
+              >
+                {ev.title}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading ? (
           <div className="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
@@ -597,14 +701,18 @@ export function Gallery() {
               <Skeleton key={i} className={`w-full ${i % 3 === 0 ? 'h-48' : 'h-32'} break-inside-avoid`} />
             ))}
           </div>
-        ) : images.length === 0 ? (
-          <EmptyState icon={ImageIcon} title="No photos yet" description="Gallery images will appear here." />
+        ) : filteredImages.length === 0 ? (
+          <EmptyState
+            icon={ImageIcon}
+            title="No photos yet"
+            description={eventFilter ? 'No photos for this event yet.' : 'Gallery images will appear here.'}
+          />
         ) : (
           <div className="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
-            {images.map((img, i) => (
+            {filteredImages.map((img, i) => (
               <div
                 key={img.id}
-                onClick={() => setLightbox(i)}
+                onClick={() => openLightbox(i)}
                 className="break-inside-avoid overflow-hidden rounded-xl cursor-pointer group"
               >
                 <img
@@ -619,49 +727,18 @@ export function Gallery() {
         )}
       </motion.div>
 
-      {/* Lightbox */}
-      {lightbox !== null && images[lightbox] && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[100] bg-surface-950/95 backdrop-blur-xl flex items-center justify-center"
-          onClick={() => setLightbox(null)}
-        >
-          <button
-            onClick={(e) => { e.stopPropagation(); setLightbox(null) }}
-            className="absolute top-4 right-4 text-surface-400 hover:text-surface-100 p-2 rounded-xl bg-surface-800/60"
-          >
-            <X size={20} />
-          </button>
-          {lightbox > 0 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setLightbox((v) => (v! - 1)) }}
-              className="absolute left-4 text-surface-400 hover:text-surface-100 p-2 rounded-xl bg-surface-800/60"
-            >
-              <ChevronLeft size={24} />
-            </button>
-          )}
-          <img
-            src={images[lightbox].url}
-            alt={images[lightbox].caption ?? ''}
-            className="max-h-[85vh] max-w-[90vw] rounded-2xl object-contain"
-            onClick={(e) => e.stopPropagation()}
+      {/* Lightbox — with per-photo share, likes, and comments */}
+      <AnimatePresence>
+        {lightbox !== null && filteredImages[lightbox] && (
+          <PhotoLightbox
+            photos={filteredImages}
+            index={lightbox}
+            onClose={closeLightbox}
+            onIndexChange={changeLightbox}
+            buildShareUrl={(photo) => `${window.location.origin}/gallery?photo=${photo.id}`}
           />
-          {lightbox < images.length - 1 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setLightbox((v) => (v! + 1)) }}
-              className="absolute right-4 text-surface-400 hover:text-surface-100 p-2 rounded-xl bg-surface-800/60"
-            >
-              <ChevronRight size={24} />
-            </button>
-          )}
-          {images[lightbox].caption && (
-            <p className="absolute bottom-8 left-1/2 -translate-x-1/2 text-surface-300 text-sm bg-surface-900/80 px-4 py-2 rounded-xl">
-              {images[lightbox].caption}
-            </p>
-          )}
-        </motion.div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -885,6 +962,8 @@ export function About() {
               ))}
             </div>
           </div>
+
+          <AnthemEmbed />
 
           <div className="card">
             <h2 className="font-semibold text-surface-100 mb-3">Core Values</h2>
