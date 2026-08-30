@@ -25,17 +25,32 @@ export async function dbGet<T>(path: string): Promise<T | null> {
   return snap.exists() ? (snap.val() as T) : null
 }
 
+/** Recursively removes keys whose value is `undefined` (Firebase RTDB rejects them in set()/push()). */
+function stripUndefined<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((v) => stripUndefined(v)) as unknown as T
+  }
+  if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (v !== undefined) out[k] = stripUndefined(v)
+    }
+    return out as T
+  }
+  return value
+}
+
 export async function dbSet(path: string, value: unknown) {
-  await set(ref(db, path), value)
+  await set(ref(db, path), stripUndefined(value))
 }
 
 export async function dbPush(path: string, value: unknown): Promise<string> {
-  const r = await push(ref(db, path), value)
+  const r = await push(ref(db, path), stripUndefined(value))
   return r.key!
 }
 
 export async function dbUpdate(path: string, value: Record<string, unknown>) {
-  await update(ref(db, path), value)
+  await update(ref(db, path), stripUndefined(value))
 }
 
 export async function dbRemove(path: string) {
