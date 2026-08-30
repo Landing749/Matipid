@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getDatabase, ref, set, push, get, update, remove, onValue, query, orderByChild, limitToLast, serverTimestamp } from 'firebase/database'
+import { getDatabase, ref, set, push, get, update, remove, onValue, query, orderByChild, limitToLast, serverTimestamp, runTransaction } from 'firebase/database'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyCrU4cC3GdHu3MbB6fht1XhR_kYwAArAUQ',
@@ -16,7 +16,7 @@ export const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const db = getDatabase(app)
 
-export { ref, set, push, get, update, remove, onValue, query, orderByChild, limitToLast, serverTimestamp }
+export { ref, set, push, get, update, remove, onValue, query, orderByChild, limitToLast, serverTimestamp, runTransaction }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -40,6 +40,12 @@ export async function dbUpdate(path: string, value: Record<string, unknown>) {
 
 export async function dbRemove(path: string) {
   await remove(ref(db, path))
+}
+
+/** Atomically adjusts a numeric counter at `path` by `delta`, creating it at 0 first if needed. Returns the new value. */
+export async function dbIncrement(path: string, delta: number): Promise<number> {
+  const result = await runTransaction(ref(db, path), (current: number | null) => (current ?? 0) + delta)
+  return (result.snapshot.val() as number | null) ?? 0
 }
 
 // ─── Activity Logger ────────────────────────────────────────────────────────

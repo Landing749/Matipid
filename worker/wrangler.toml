@@ -1,0 +1,17 @@
+name = "matipid-export"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+# One free-tier Worker. Deploys to https://matipid-export.<your-subdomain>.workers.dev
+# Run `npx wrangler deploy` from this folder to publish, then copy the printed
+# URL into src/lib/worker.ts (WORKER_URL) in the main app.
+
+[vars]
+# RTDB base URL — public REST endpoint, no service account needed.
+FIREBASE_DB_URL = "https://section-matipid-default-rtdb.firebaseio.com"
+SECTION_NAME = "MATIPID"
+
+# Comma-separated list of allowed CORS origins. Add your GitHub Pages URL
+# (and http://localhost:5173 for local dev) after deploying.
+ALLOWED_ORIGINS = "http://localhost:5173,https://landing749.github.io"

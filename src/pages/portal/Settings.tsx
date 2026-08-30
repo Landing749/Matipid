@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useQueryClient } from '@tanstack/react-query'
 import { PageHeader, Spinner } from '@/components/ui'
 import { Logo } from '@/components/Logo'
-import defaultLogo from '@/assets/logo.svg'
+import defaultLogo from '@/assets/logo-mark.png'
 
 interface SiteSettings {
   siteTitle: string
@@ -176,7 +176,7 @@ export function Settings() {
         {/* Section info */}
         <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0} className="card-hover">
           <div className="flex items-center gap-2 mb-4">
-            <div className="icon-tile bg-brand-600/15 text-brand-400">
+            <div className="icon-tile bg-brand-600/15 text-brand-600">
               <Info size={16} />
             </div>
             <h2 className="text-sm font-semibold text-surface-200">Section Information</h2>
@@ -216,7 +216,7 @@ export function Settings() {
         {/* Branding */}
         <motion.div variants={fadeUp} initial="hidden" animate="show" custom={1} className="card-hover">
           <div className="flex items-center gap-2 mb-4">
-            <div className="icon-tile bg-gold-500/15 text-gold-400">
+            <div className="icon-tile bg-gold-500/15 text-gold-700">
               <Palette size={16} />
             </div>
             <h2 className="text-sm font-semibold text-surface-200">Branding</h2>
@@ -246,7 +246,7 @@ export function Settings() {
                       type="button"
                       onClick={resetLogo}
                       title="Revert to default logo"
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-surface-400 hover:text-red-400 hover:border-red-500/40 transition-colors shadow-md"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-surface-400 hover:text-red-600 hover:border-red-500/40 transition-colors shadow-md"
                     >
                       <X size={12} />
                     </button>
@@ -276,7 +276,7 @@ export function Settings() {
                     <button
                       type="button"
                       onClick={resetLogo}
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs text-surface-500 hover:text-brand-300 transition-colors"
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs text-surface-500 hover:text-brand-700 transition-colors"
                     >
                       <RotateCcw size={12} /> Reset to default logo
                     </button>
@@ -320,7 +320,7 @@ export function Settings() {
         {/* Live Preview */}
         <motion.div variants={fadeUp} initial="hidden" animate="show" custom={2} className="card-hover">
           <div className="flex items-center gap-2 mb-4">
-            <div className="icon-tile bg-brand-600/15 text-brand-400">
+            <div className="icon-tile bg-brand-600/15 text-brand-600">
               <SettingsIcon size={16} />
             </div>
             <h2 className="text-sm font-semibold text-surface-200">Preview</h2>
@@ -337,7 +337,7 @@ export function Settings() {
         {/* Social links */}
         <motion.div variants={fadeUp} initial="hidden" animate="show" custom={3} className="card-hover">
           <div className="flex items-center gap-2 mb-4">
-            <div className="icon-tile bg-emerald-500/15 text-emerald-400">
+            <div className="icon-tile bg-emerald-500/15 text-emerald-600">
               <Globe size={16} />
             </div>
             <h2 className="text-sm font-semibold text-surface-200">Social Links</h2>
@@ -358,7 +358,7 @@ export function Settings() {
           className={`card border transition-colors duration-300 ${maintenance ? 'border-red-600/40 bg-red-900/10' : 'border-surface-800/60'}`}
         >
           <div className="flex items-center gap-2 mb-4">
-            <div className={`icon-tile ${maintenance ? 'bg-red-500/15 text-red-400' : 'bg-surface-700/30 text-surface-400'}`}>
+            <div className={`icon-tile ${maintenance ? 'bg-red-500/15 text-red-600' : 'bg-surface-700/30 text-surface-400'}`}>
               <AlertTriangle size={16} />
             </div>
             <h2 className="text-sm font-semibold text-surface-200">Maintenance Mode</h2>
@@ -377,7 +377,7 @@ export function Settings() {
             <motion.p
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="text-xs text-red-400 mt-3 font-medium"
+              className="text-xs text-red-600 mt-3 font-medium"
             >
               ⚠️ Public site is currently in maintenance mode.
             </motion.p>

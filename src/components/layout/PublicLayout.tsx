@@ -16,6 +16,7 @@ const navLinks = [
   { to: '/gallery', label: 'Gallery' },
   { to: '/finances', label: 'Transparency' },
   { to: '/officers', label: 'Officers' },
+  { to: '/suggestions', label: 'Suggestions' },
   { to: '/about', label: 'About' },
 ]
 
@@ -27,12 +28,12 @@ export function PublicLayout() {
 
   return (
     <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col">
-      {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-surface-800/60 bg-surface-950/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <Logo size={34} />
-            <span className="font-bold text-surface-100 group-hover:text-brand-300 transition-colors">{sectionName}</span>
+      {/* Nav — floating clay pill bar */}
+      <header className="sticky top-3 z-50 px-3 sm:px-6">
+        <div className="max-w-6xl mx-auto glass rounded-full shadow-clay-sm flex items-center justify-between h-14 px-3 sm:px-4">
+          <Link to="/" className="flex items-center gap-2.5 group pl-1">
+            <Logo size={32} />
+            <span className="font-bold text-surface-100 group-hover:text-brand-600 transition-colors">{sectionName}</span>
           </Link>
 
           {/* Desktop nav */}
@@ -43,10 +44,10 @@ export function PublicLayout() {
                 to={l.to}
                 end={l.end}
                 className={({ isActive }) =>
-                  `px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  `px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                     isActive
-                      ? 'text-brand-300 bg-brand-600/10'
-                      : 'text-surface-400 hover:text-surface-100 hover:bg-surface-800/60'
+                      ? 'text-brand-700 bg-brand-100'
+                      : 'text-surface-500 hover:text-surface-100 hover:bg-white/60'
                   }`
                 }
               >
@@ -55,10 +56,10 @@ export function PublicLayout() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={toggle}
-              className="p-2 rounded-xl text-surface-400 hover:bg-surface-800 hover:text-surface-100 transition-all"
+              className="p-2 rounded-full text-surface-500 hover:bg-white/60 hover:text-surface-100 transition-all"
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -68,7 +69,7 @@ export function PublicLayout() {
             </Link>
             <button
               onClick={() => setOpen(true)}
-              className="md:hidden p-2 text-surface-400 hover:text-surface-100 transition-colors"
+              className="md:hidden p-2 rounded-full text-surface-500 hover:bg-white/60 hover:text-surface-100 transition-colors"
             >
               <Menu size={20} />
             </button>
@@ -85,13 +86,13 @@ export function PublicLayout() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 md:hidden"
           >
-            <div className="absolute inset-0 bg-surface-950/80 backdrop-blur-sm" onClick={() => setOpen(false)} />
+            <div className="absolute inset-0 bg-surface-50/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="absolute right-0 top-0 bottom-0 w-64 bg-surface-900 border-l border-surface-800 p-6"
+              className="absolute right-3 top-3 bottom-3 w-64 clay rounded-4xl p-6"
             >
               <button onClick={() => setOpen(false)} className="mb-6 text-surface-400 hover:text-surface-100">
                 <X size={20} />
@@ -104,10 +105,10 @@ export function PublicLayout() {
                     end={l.end}
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
-                      `px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      `px-3 py-2.5 rounded-2xl text-sm font-medium transition-all ${
                         isActive
-                          ? 'text-brand-300 bg-brand-600/10'
-                          : 'text-surface-400 hover:text-surface-100 hover:bg-surface-800/60'
+                          ? 'text-brand-700 bg-brand-100'
+                          : 'text-surface-500 hover:text-surface-100 hover:bg-white/60'
                       }`
                     }
                   >
@@ -129,18 +130,18 @@ export function PublicLayout() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-surface-800/60 bg-surface-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="px-3 sm:px-6 pb-6 pt-2">
+        <div className="max-w-6xl mx-auto clay rounded-4xl px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Logo size={24} animated={false} rounded="rounded-md" />
-            <span className="text-sm font-medium text-surface-400">{sectionName}</span>
+            <Logo size={26} animated={false} />
+            <span className="text-sm font-semibold text-surface-400">{sectionName}</span>
           </div>
-          <p className="text-xs text-surface-600">Grade 8 • Section Management & Transparency Platform</p>
-          <p className="text-xs text-surface-600">© {new Date().getFullYear()} ATH Studios</p>
+          <p className="text-xs text-surface-500">Grade 8 • Section Management & Transparency Platform</p>
+          <p className="text-xs text-surface-500">© {new Date().getFullYear()} ATH Studios</p>
         </div>
       </footer>
 
-      <Toaster position="top-right" theme="dark" />
+      <Toaster position="top-right" theme="light" />
     </div>
   )
 }

@@ -115,7 +115,7 @@ export function StorageManager() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-xl bg-brand-600/15 flex items-center justify-center">
-                    <folder.icon size={16} className="text-brand-400" />
+                    <folder.icon size={16} className="text-brand-600" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-surface-100">{folder.label}</p>

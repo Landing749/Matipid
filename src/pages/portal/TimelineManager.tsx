@@ -227,7 +227,7 @@ export function TimelineManager() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-brand-400 font-mono mb-0.5">{formatDate(entry.date)}</p>
+                    <p className="text-xs text-brand-600 font-mono mb-0.5">{formatDate(entry.date)}</p>
                     <p className="text-sm font-semibold text-surface-100 truncate">{entry.title}</p>
                     <p className="text-xs text-surface-400 line-clamp-2 mt-0.5">{entry.description}</p>
                     {entry.location && (
@@ -239,14 +239,14 @@ export function TimelineManager() {
                   <div className="flex flex-col gap-1 flex-shrink-0">
                     <button
                       onClick={() => openEdit(entry)}
-                      className="p-1.5 rounded-lg text-surface-500 hover:text-brand-400 hover:bg-brand-600/10 transition-all"
+                      className="p-1.5 rounded-lg text-surface-500 hover:text-brand-600 hover:bg-brand-600/10 transition-all"
                     >
                       <Edit2 size={13} />
                     </button>
                     <button
                       onClick={() => deleteEntry(entry)}
                       disabled={deleting === entry.id}
-                      className="p-1.5 rounded-lg text-surface-500 hover:text-red-400 hover:bg-red-600/10 transition-all"
+                      className="p-1.5 rounded-lg text-surface-500 hover:text-red-600 hover:bg-red-600/10 transition-all"
                     >
                       {deleting === entry.id ? <Spinner size={13} /> : <Trash2 size={13} />}
                     </button>
@@ -277,7 +277,7 @@ export function TimelineManager() {
               {coverPreview ? (
                 <div className="relative h-32 rounded-xl overflow-hidden border border-surface-700">
                   <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-surface-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-[#2b2419]/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Upload size={20} className="text-white" />
                   </div>
                 </div>
@@ -294,7 +294,7 @@ export function TimelineManager() {
           <div>
             <label className="label">Title</label>
             <input className="input" placeholder="e.g. First General Assembly" {...register('title')} />
-            {errors.title && <p className="text-xs text-red-400 mt-1">{errors.title.message}</p>}
+            {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message}</p>}
           </div>
 
           <div>
@@ -304,14 +304,14 @@ export function TimelineManager() {
               placeholder="Describe what happened at this milestone…"
               {...register('description')}
             />
-            {errors.description && <p className="text-xs text-red-400 mt-1">{errors.description.message}</p>}
+            {errors.description && <p className="text-xs text-red-600 mt-1">{errors.description.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Date</label>
               <input type="date" className="input" {...register('date')} />
-              {errors.date && <p className="text-xs text-red-400 mt-1">{errors.date.message}</p>}
+              {errors.date && <p className="text-xs text-red-600 mt-1">{errors.date.message}</p>}
             </div>
             <div>
               <label className="label">Location (optional)</label>

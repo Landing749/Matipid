@@ -8,7 +8,10 @@ import { Home } from '@/pages/public/Home'
 import { Announcements } from '@/pages/public/Announcements'
 import { AnnouncementDetail } from '@/pages/public/AnnouncementDetail'
 import { FinancialTransparency } from '@/pages/public/FinancialTransparency'
+import { Suggestions } from '@/pages/public/Suggestions'
 import { Events, Gallery, Timeline, OfficerList, About } from '@/pages/public/PublicPages'
+import { EventDetail } from '@/pages/public/EventDetail'
+import { NotFound } from '@/pages/public/NotFound'
 
 // Auth
 import { Login } from '@/pages/Login'
@@ -27,6 +30,7 @@ import { UserManagement } from '@/pages/portal/UserManagement'
 import { Settings } from '@/pages/portal/Settings'
 import { SearchPage } from '@/pages/portal/SearchPage'
 import { AnnouncementsManager } from '@/pages/portal/AnnouncementsManager'
+import { SuggestionsManager } from '@/pages/portal/SuggestionsManager'
 import { GalleryManager } from '@/pages/portal/GalleryManager'
 import { OfficersManager } from '@/pages/portal/OfficersManager'
 import { EventsManager } from '@/pages/portal/EventsManager'
@@ -45,11 +49,14 @@ export function AppRouter() {
           <Route path="/announcements" element={<Announcements />} />
           <Route path="/announcements/:id" element={<AnnouncementDetail />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/events/:id" element={<EventDetail />} />
           <Route path="/timeline" element={<Timeline />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/finances" element={<FinancialTransparency />} />
+          <Route path="/suggestions" element={<Suggestions />} />
           <Route path="/officers" element={<OfficerList />} />
           <Route path="/about" element={<About />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
 
         {/* Login */}
@@ -69,6 +76,7 @@ export function AppRouter() {
           <Route path="announcements" element={<AnnouncementsManager />} />
           <Route path="events" element={<EventsManager />} />
           <Route path="gallery" element={<GalleryManager />} />
+          <Route path="suggestions" element={<SuggestionsManager />} />
           <Route path="officers" element={<OfficersManager />} />
           <Route path="finance" element={<ProtectedRoute allowedRoles={['admin', 'treasurer', 'auditor']}><Finance /></ProtectedRoute>} />
           <Route path="budget" element={<ProtectedRoute allowedRoles={['admin', 'treasurer', 'auditor']}><BudgetTracker /></ProtectedRoute>} />
@@ -86,9 +94,6 @@ export function AppRouter() {
           <Route path="members" element={<MembersDirectory />} />
           <Route path="timeline" element={<TimelineManager />} />
         </Route>
-
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
   )

@@ -23,9 +23,9 @@ interface ServiceCheck {
 
 function StatusIndicator({ status }: { status: ServiceStatus }) {
   const cfg = {
-    healthy: { dot: 'bg-emerald-400 shadow-emerald-400/50', text: 'text-emerald-400', label: 'Healthy' },
-    delayed: { dot: 'bg-yellow-400 shadow-yellow-400/50', text: 'text-yellow-400', label: 'Delayed' },
-    offline: { dot: 'bg-red-400 shadow-red-400/50', text: 'text-red-400', label: 'Offline' },
+    healthy: { dot: 'bg-emerald-400 shadow-emerald-400/50', text: 'text-emerald-600', label: 'Healthy' },
+    delayed: { dot: 'bg-yellow-400 shadow-yellow-400/50', text: 'text-yellow-600', label: 'Delayed' },
+    offline: { dot: 'bg-red-400 shadow-red-400/50', text: 'text-red-600', label: 'Offline' },
     checking: { dot: 'bg-surface-400', text: 'text-surface-400', label: 'Checking…' },
   }[status]
 
@@ -160,8 +160,8 @@ export function SystemHealth() {
       }`}>
         <div className="flex items-center gap-3">
           <Activity size={20} className={
-            overallStatus === 'healthy' ? 'text-emerald-400' :
-            overallStatus === 'offline' ? 'text-red-400' : 'text-yellow-400'
+            overallStatus === 'healthy' ? 'text-emerald-600' :
+            overallStatus === 'offline' ? 'text-red-600' : 'text-yellow-600'
           } />
           <div>
             <p className="text-sm font-semibold text-surface-100">Overall System Status</p>
@@ -191,7 +191,7 @@ export function SystemHealth() {
               <p className="text-xs text-surface-500">{svc.latency}ms response</p>
             )}
             {svc.message && (
-              <p className="text-xs text-red-400 mt-1">{svc.message}</p>
+              <p className="text-xs text-red-600 mt-1">{svc.message}</p>
             )}
             {svc.lastCheck && (
               <p className="text-xs text-surface-600 mt-2">{formatDateTime(svc.lastCheck)}</p>
@@ -207,7 +207,7 @@ export function SystemHealth() {
           {metrics.map((m) => (
             <div key={m.label} className="p-3 rounded-xl bg-surface-800/40">
               <p className="text-xs text-surface-500 uppercase tracking-wider mb-1">{m.label}</p>
-              <p className={`text-sm font-semibold font-mono ${m.alert ? 'text-yellow-400' : 'text-surface-100'}`}>
+              <p className={`text-sm font-semibold font-mono ${m.alert ? 'text-yellow-600' : 'text-surface-100'}`}>
                 {m.value}
               </p>
             </div>
@@ -231,7 +231,7 @@ export function SystemHealth() {
               />
             ))}
           </div>
-          <span className="text-xs text-emerald-400 font-medium">Live</span>
+          <span className="text-xs text-emerald-600 font-medium">Live</span>
         </div>
         <p className="text-xs text-surface-600 mt-2">Auto-refreshes every 30 seconds</p>
       </div>

@@ -14,9 +14,9 @@ interface FrameProps {
 }
 
 const toneStops: Record<string, [string, string]> = {
-  brand: ['#8b3dff', '#2d0670'],
-  gold: ['#fbbf24', '#92400e'],
-  green: ['#34d399', '#065f46'],
+  brand: ['#a688dd', '#4c397d'],
+  gold: ['#eab765', '#8c5620'],
+  green: ['#8ecda9', '#33684d'],
 }
 
 function IllustrationFrame({ id, className, tone = 'brand', children, sparkles = [] }: FrameProps) {

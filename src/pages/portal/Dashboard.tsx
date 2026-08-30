@@ -113,11 +113,11 @@ export function Dashboard() {
   ] : []
 
   const actionColors: Record<string, string> = {
-    LOGIN: 'text-brand-400', LOGOUT: 'text-surface-400',
-    CREATE: 'text-emerald-400', UPDATE: 'text-gold-400',
-    DELETE: 'text-red-400', APPROVE: 'text-emerald-400',
-    REJECT: 'text-red-400', FLAG: 'text-yellow-400',
-    UPLOAD: 'text-brand-400', BACKUP: 'text-brand-400',
+    LOGIN: 'text-brand-600', LOGOUT: 'text-surface-400',
+    CREATE: 'text-emerald-600', UPDATE: 'text-gold-700',
+    DELETE: 'text-red-600', APPROVE: 'text-emerald-600',
+    REJECT: 'text-red-600', FLAG: 'text-yellow-600',
+    UPLOAD: 'text-brand-600', BACKUP: 'text-brand-600',
   }
 
   const hour = new Date().getHours()

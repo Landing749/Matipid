@@ -5,114 +5,228 @@
 @layer base {
   * { @apply border-surface-800; }
   html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
-  body { @apply bg-surface-950 text-surface-100 font-sans; }
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  body {
+    @apply text-surface-100 font-sans;
+    background: #f8f2e6;
+    background-image:
+      radial-gradient(ellipse 70% 50% at 12% 0%, rgba(141,109,209,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 55% 45% at 100% 20%, rgba(224,160,74,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 15% 100%, rgba(79,162,118,0.08) 0%, transparent 55%);
+    background-attachment: fixed;
+  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { @apply bg-transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-surface-700/80 rounded-full; }
+  ::-webkit-scrollbar-thumb { @apply bg-surface-700/60 rounded-full; border: 2px solid transparent; background-clip: content-box; }
   ::-webkit-scrollbar-thumb:hover { @apply bg-surface-600; }
-  ::selection { @apply bg-brand-600/40 text-brand-100; }
+  ::selection { @apply bg-brand-300/50 text-brand-950; }
 }
 
 @layer components {
-  /* Glass surface */
-  .glass {
-    @apply bg-surface-900/60 backdrop-blur-md border border-surface-800/60;
+  /* ============ Claymorphism core ============ */
+  /* Soft puffy surface: warm neutral fill + dual directional shadow (light hits top-left, warm shadow pools bottom-right).
+     A faint two-tone border (lighter top/left, warmer bottom/right) reinforces the "pinched from clay" bevel. */
+  .clay {
+    background: #faf5ea;
+    border-width: 1px;
+    border-color: rgba(255,255,255,0.85) rgba(150,132,103,0.22) rgba(150,132,103,0.22) rgba(255,255,255,0.85);
+    @apply shadow-clay;
   }
+  .clay-sm {
+    background: #faf5ea;
+    border-width: 1px;
+    border-color: rgba(255,255,255,0.85) rgba(150,132,103,0.2) rgba(150,132,103,0.2) rgba(255,255,255,0.85);
+    @apply shadow-clay-sm;
+  }
+  .clay-inset { background: #f1e9d8; @apply shadow-clay-inset; }
 
-  /* Cards */
+  /* Cards — the base "tile" used everywhere, including the bento grid */
   .card {
-    @apply glass rounded-2xl p-5 transition-all duration-200;
-    box-shadow: 0 1px 0 0 rgba(255,255,255,0.04) inset, 0 0 0 0 transparent;
+    @apply clay rounded-3xl p-5 transition-all duration-300;
   }
   .card-hover {
-    @apply card;
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    @apply card cursor-pointer;
+    transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s ease;
   }
   .card-hover:hover {
-    @apply border-brand-600/30 -translate-y-0.5;
-    box-shadow: 0 8px 28px -4px rgba(124,26,255,0.1), 0 1px 0 0 rgba(255,255,255,0.04) inset;
+    transform: translateY(-4px) scale(1.008);
+    @apply shadow-clay-lg;
+  }
+  .card-hover:active { @apply shadow-clay-pressed; transform: translateY(0) scale(0.995); }
+
+  /* Glass kept for compatibility, retuned to a frosted-clay look for sticky headers */
+  .glass {
+    background: rgba(248,242,230,0.75);
+    @apply backdrop-blur-md border border-white/60;
   }
 
-  /* Buttons */
+  /* Floating clay panel — for modals, dropdowns, popovers, command palettes.
+     Opaque so it reads as a solid raised surface against the page, not a
+     transparent leftover from the old dark theme. */
+  .clay-panel {
+    background: #faf5ea;
+    border: 1px solid rgba(255,255,255,0.7);
+    @apply rounded-2xl shadow-clay-lg;
+  }
+  /* Dark scrim behind modals/palettes — dims the page instead of the old
+     near-white "dark" tokens that stopped working once the surface ramp
+     was inverted for the clay palette. */
+  .scrim { background: rgba(37,28,20,0.45); }
+
+  /* Small dark chip — for tooltips and kbd callouts that need to pop off
+     the light clay chrome regardless of theme. */
+  .chip-dark {
+    @apply bg-surface-100 text-surface-950 text-xs px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap;
+  }
+
+  /* Buttons — puffy clay pills that "press in" on click.
+     Primary + gold get a skeuomorphic glossy-plastic treatment (top sheen, beveled
+     edge, a hard "lip" shadow for thickness) since those are the buttons people
+     actually press; secondary/ghost/danger stay flatter clay so the gloss reads as
+     emphasis rather than noise. */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-950 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97];
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#f8f2e6] disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-primary {
-    @apply btn text-white focus:ring-brand-500;
-    background: linear-gradient(135deg, #8b3dff 0%, #6b0dec 100%);
-    box-shadow: 0 4px 14px 0 rgba(124,26,255,0.3), 0 1px 0 0 rgba(255,255,255,0.1) inset;
+    @apply btn text-white focus:ring-brand-400 relative;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 50%),
+      linear-gradient(160deg, #b79cf0 0%, #7458bd 60%, #5f479c 100%);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-bottom-color: rgba(45,32,80,0.4);
+    text-shadow: 0 1px 1px rgba(45,32,80,0.25);
+    box-shadow:
+      inset 0 1px 1px rgba(255,255,255,0.6),
+      inset 0 -6px 10px rgba(45,32,80,0.18),
+      0 2px 0 rgba(95,71,156,0.55),
+      6px 8px 16px rgba(95,71,156,0.35),
+      -3px -3px 8px rgba(255,255,255,0.5);
+    transform: translateY(0);
   }
   .btn-primary:hover {
-    background: linear-gradient(135deg, #a166ff 0%, #7c1aff 100%);
-    box-shadow: 0 6px 20px 0 rgba(124,26,255,0.4), 0 1px 0 0 rgba(255,255,255,0.1) inset;
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 1px rgba(255,255,255,0.65),
+      inset 0 -6px 10px rgba(45,32,80,0.16),
+      0 3px 0 rgba(95,71,156,0.55),
+      8px 10px 20px rgba(95,71,156,0.4),
+      -4px -4px 10px rgba(255,255,255,0.55);
+  }
+  .btn-primary:active {
+    transform: translateY(2px);
+    box-shadow:
+      inset 0 2px 5px rgba(45,32,80,0.4),
+      inset 0 -1px 0 rgba(255,255,255,0.2),
+      0 0 0 rgba(95,71,156,0);
   }
   .btn-secondary {
-    @apply btn bg-surface-800 text-surface-100 hover:bg-surface-700 focus:ring-surface-600;
-    box-shadow: 0 1px 0 0 rgba(255,255,255,0.04) inset;
+    @apply btn text-surface-200 focus:ring-surface-400 active:scale-[0.97];
+    background: #f2ead9;
+    box-shadow: 5px 5px 10px rgba(150,132,103,0.3), -5px -5px 10px rgba(255,255,255,0.85);
   }
+  .btn-secondary:hover { box-shadow: 6px 6px 14px rgba(150,132,103,0.35), -6px -6px 14px rgba(255,255,255,0.9); }
+  .btn-secondary:active { @apply shadow-clay-pressed; }
   .btn-ghost {
-    @apply btn bg-transparent text-surface-400 hover:bg-surface-800 hover:text-surface-100 focus:ring-surface-600;
+    @apply btn bg-transparent text-surface-400 hover:text-surface-100 focus:ring-surface-400 active:scale-[0.97];
   }
+  .btn-ghost:hover { background: rgba(255,255,255,0.5); }
   .btn-danger {
-    @apply btn bg-red-600/15 text-red-400 hover:bg-red-600/25 focus:ring-red-500 border border-red-600/20;
+    @apply btn text-red-700 active:scale-[0.97];
+    background: #f8e4e0;
+    border: 1px solid rgba(190,110,90,0.18);
+    box-shadow: 5px 5px 10px rgba(190,110,90,0.22), -5px -5px 10px rgba(255,255,255,0.85);
   }
+  .btn-danger:hover { background: #f5d7d1; }
+  .btn-warning {
+    @apply btn text-gold-800 active:scale-[0.97];
+    background: #f6dfb0;
+    border: 1px solid rgba(207,136,54,0.2);
+    box-shadow: 5px 5px 10px rgba(207,136,54,0.22), -5px -5px 10px rgba(255,255,255,0.85);
+  }
+  .btn-warning:hover { background: #f3d49c; }
   .btn-gold {
-    @apply btn text-surface-950 focus:ring-gold-400 font-semibold;
-    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-    box-shadow: 0 4px 14px 0 rgba(245,158,11,0.25);
+    @apply btn text-surface-50 focus:ring-gold-300 font-semibold relative;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 50%),
+      linear-gradient(160deg, #f3d49c 0%, #cf8836 60%, #af6d28 100%);
+    border: 1px solid rgba(255,255,255,0.55);
+    border-bottom-color: rgba(90,58,15,0.4);
+    text-shadow: 0 1px 1px rgba(90,58,15,0.3);
+    box-shadow:
+      inset 0 1px 1px rgba(255,255,255,0.65),
+      inset 0 -6px 10px rgba(90,58,15,0.2),
+      0 2px 0 rgba(175,109,40,0.55),
+      6px 8px 16px rgba(175,109,40,0.35),
+      -3px -3px 8px rgba(255,255,255,0.5);
   }
   .btn-gold:hover {
-    background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
-    box-shadow: 0 6px 20px 0 rgba(245,158,11,0.35);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 1px rgba(255,255,255,0.7),
+      inset 0 -6px 10px rgba(90,58,15,0.18),
+      0 3px 0 rgba(175,109,40,0.55),
+      8px 10px 20px rgba(175,109,40,0.4),
+      -4px -4px 10px rgba(255,255,255,0.55);
+  }
+  .btn-gold:active {
+    transform: translateY(2px);
+    box-shadow:
+      inset 0 2px 5px rgba(90,58,15,0.45),
+      inset 0 -1px 0 rgba(255,255,255,0.2),
+      0 0 0 rgba(175,109,40,0);
   }
 
-  /* Inputs */
+  /* Inputs — recessed clay wells */
   .input {
-    @apply w-full rounded-xl bg-surface-800/60 border border-surface-700/60 px-4 py-2.5 text-sm text-surface-100 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all;
+    @apply w-full rounded-2xl px-4 py-2.5 text-sm text-surface-100 placeholder:text-surface-500 focus:outline-none transition-all border border-white/60;
+    background: #f1e9d8;
+    box-shadow: inset 3px 3px 7px rgba(150,132,103,0.28), inset -3px -3px 7px rgba(255,255,255,0.7);
   }
+  .input:focus { box-shadow: inset 3px 3px 7px rgba(150,132,103,0.32), inset -3px -3px 7px rgba(255,255,255,0.7), 0 0 0 3px rgba(166,136,221,0.3); }
   .label {
-    @apply block text-[10px] font-semibold text-surface-500 mb-1.5 uppercase tracking-[0.1em];
+    @apply block text-[10px] font-bold text-surface-500 mb-1.5 uppercase tracking-[0.12em];
   }
 
-  /* Badges */
+  /* Badges — small clay pebbles */
   .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors;
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold transition-colors;
   }
-  .badge-purple { @apply badge bg-brand-600/15 text-brand-300 border border-brand-600/25; }
-  .badge-gold { @apply badge bg-gold-500/15 text-gold-300 border border-gold-500/25; }
-  .badge-green { @apply badge bg-emerald-500/15 text-emerald-300 border border-emerald-500/25; }
-  .badge-red { @apply badge bg-red-500/15 text-red-300 border border-red-500/25; }
-  .badge-yellow { @apply badge bg-yellow-500/15 text-yellow-300 border border-yellow-500/25; }
-  .badge-gray { @apply badge bg-surface-700/40 text-surface-400 border border-surface-700/50; }
+  .badge-purple { @apply badge text-brand-700; background: #ece3fa; box-shadow: 2px 2px 5px rgba(116,88,189,0.18), -2px -2px 5px rgba(255,255,255,0.8); }
+  .badge-gold { @apply badge text-gold-700; background: #f6dfb0; box-shadow: 2px 2px 5px rgba(207,136,54,0.2), -2px -2px 5px rgba(255,255,255,0.8); }
+  .badge-green { @apply badge text-clay-700; background: #d9efe1; box-shadow: 2px 2px 5px rgba(79,162,118,0.2), -2px -2px 5px rgba(255,255,255,0.8); }
+  .badge-red { @apply badge text-red-700; background: #f8e4e0; box-shadow: 2px 2px 5px rgba(190,110,90,0.2), -2px -2px 5px rgba(255,255,255,0.8); }
+  .badge-yellow { @apply badge text-gold-700; background: #f6dfb0; box-shadow: 2px 2px 5px rgba(207,136,54,0.2), -2px -2px 5px rgba(255,255,255,0.8); }
+  .badge-gray { @apply badge text-surface-500; background: #ede4d2; box-shadow: 2px 2px 5px rgba(150,132,103,0.18), -2px -2px 5px rgba(255,255,255,0.8); }
 
   /* Sidebar */
   .sidebar-item {
-    @apply flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] font-medium text-surface-400 hover:bg-surface-800/50 hover:text-surface-100 transition-all cursor-pointer;
+    @apply flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-[13px] font-medium text-surface-500 hover:text-surface-100 transition-all cursor-pointer;
   }
+  .sidebar-item:hover { background: rgba(255,255,255,0.6); }
   .sidebar-item-active {
-    @apply sidebar-item text-brand-200 border border-brand-600/20;
-    background: linear-gradient(90deg, rgba(124,26,255,0.22) 0%, rgba(124,26,255,0.06) 60%, transparent 100%);
+    @apply sidebar-item text-brand-700 font-semibold;
+    background: #ece3fa;
+    box-shadow: inset 2px 2px 5px rgba(116,88,189,0.18), inset -2px -2px 5px rgba(255,255,255,0.7);
   }
 
   /* Typography utilities */
   .gradient-text {
-    @apply bg-gradient-to-r from-brand-400 via-brand-300 to-gold-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-shimmer;
+    @apply bg-gradient-to-r from-brand-600 via-brand-500 to-gold-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-shimmer;
   }
-  .skeleton { @apply rounded-xl bg-surface-800/70; }
+  .skeleton { @apply rounded-2xl; background: #ede4d2; }
   .mono { @apply font-mono text-sm; }
 
-  /* Page backgrounds */
+  /* Page backgrounds — soft clay blobs instead of neon radial glows */
   .hero-bg {
     background:
-      radial-gradient(ellipse 60% 55% at 50% -10%, rgba(124,26,255,0.22) 0%, transparent 65%),
-      radial-gradient(ellipse 35% 40% at 85% 85%, rgba(245,158,11,0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 40% 35% at 10% 70%, rgba(124,26,255,0.06) 0%, transparent 55%);
+      radial-gradient(ellipse 55% 50% at 50% -10%, rgba(166,136,221,0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 35% 40% at 88% 15%, rgba(224,160,74,0.16) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 35% at 8% 75%, rgba(79,162,118,0.12) 0%, transparent 55%);
   }
   .hero-grid {
     background-image:
-      linear-gradient(rgba(124,26,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124,26,255,0.04) 1px, transparent 1px);
-    background-size: 64px 64px;
+      linear-gradient(rgba(116,88,189,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(116,88,189,0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
     mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 0%, transparent 75%);
   }
 
@@ -131,7 +245,7 @@
     width: 16px;
     height: 2px;
     border-radius: 9999px;
-    @apply bg-brand-400;
+    @apply bg-brand-500;
   }
 
   /* Announcement prose */
@@ -149,21 +263,21 @@
   .prose-announcement ol li { list-style-type: decimal; }
   .prose-announcement strong { @apply text-surface-100 font-semibold; }
   .prose-announcement em { @apply text-surface-300 italic; }
-  .prose-announcement a { @apply text-brand-400 underline underline-offset-2 hover:text-brand-300; }
+  .prose-announcement a { @apply text-brand-600 underline underline-offset-2 hover:text-brand-500; }
   .prose-announcement blockquote {
-    @apply border-l-2 border-brand-600/40 pl-4 text-surface-400 italic my-4;
+    @apply border-l-2 border-brand-400/50 pl-4 text-surface-400 italic my-4;
   }
   .prose-announcement code {
-    @apply font-mono text-sm bg-surface-800 text-brand-300 px-1.5 py-0.5 rounded;
+    @apply font-mono text-sm bg-surface-800 text-brand-600 px-1.5 py-0.5 rounded;
   }
   .prose-announcement pre {
-    @apply bg-surface-800/80 rounded-xl p-4 overflow-x-auto mb-4;
+    @apply rounded-2xl p-4 overflow-x-auto mb-4 clay-inset;
   }
   .prose-announcement pre code { @apply bg-transparent p-0; }
   .prose-announcement hr { @apply border-surface-800 my-6; }
 
   /* Table rows */
-  .table-row { @apply border-t border-surface-800/60 hover:bg-surface-800/30 transition-colors; }
+  .table-row { @apply border-t border-surface-800/60 hover:bg-white/40 transition-colors; }
 
   /* Scrollbar utility */
   .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -171,23 +285,30 @@
 
   /* Upload zone */
   .upload-zone {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-800/40 border-2 border-dashed border-surface-700/60 cursor-pointer transition-all duration-200;
+    @apply flex items-center gap-3 px-4 py-3 rounded-2xl border-2 border-dashed border-surface-700/50 cursor-pointer transition-all duration-200;
+    background: rgba(255,255,255,0.4);
   }
-  .upload-zone:hover { @apply border-brand-500/50 bg-surface-800/70; }
-  .upload-zone.dragging { @apply border-brand-500 bg-brand-600/10 scale-[1.01]; }
+  .upload-zone:hover { @apply border-brand-400/60; background: rgba(255,255,255,0.65); }
+  .upload-zone.dragging { @apply border-brand-500; background: #ece3fa; }
 
-  /* Icon tile */
-  .icon-tile { @apply w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0; }
+  /* Icon tile — the little clay "nub" used before headings */
+  .icon-tile { @apply w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 clay-sm; }
 
   /* Glow ring */
   .glow-ring {
-    box-shadow: 0 0 0 1px rgba(124,26,255,0.15), 0 0 24px -4px rgba(124,26,255,0.35);
+    box-shadow: 0 0 0 1px rgba(116,88,189,0.15), 0 0 24px -4px rgba(116,88,189,0.3);
   }
 
   /* Focus ring */
   .focus-ring {
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-950;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/60 focus-visible:ring-offset-2;
   }
+
+  /* Bento grid tiles — used on the public Home page */
+  .bento-tile {
+    @apply clay rounded-4xl p-6 sm:p-7 relative overflow-hidden transition-all duration-300;
+  }
+  .bento-tile:hover { transform: translateY(-3px); @apply shadow-clay-lg; }
 }
 
 @layer utilities {
@@ -202,6 +323,6 @@
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 0px rgba(124,26,255,0.0); }
-  50% { box-shadow: 0 0 28px rgba(124,26,255,0.45); }
+  0%, 100% { box-shadow: 0 0 0px rgba(116,88,189,0.0); }
+  50% { box-shadow: 0 0 28px rgba(116,88,189,0.35); }
 }

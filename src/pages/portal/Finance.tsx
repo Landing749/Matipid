@@ -13,6 +13,7 @@ import { uploadImage } from '@/lib/cloudinary'
 import { formatCurrency, formatDate, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { Modal, StatusBadge, PageHeader, EmptyState, Spinner, StatCard } from '@/components/ui'
+import { ExportButtons } from '@/components/ExportButtons'
 
 interface Transaction {
   id: string
@@ -150,11 +151,14 @@ export function Finance() {
         title="Finance"
         description="Record and track income and expenses."
         action={
-          canCreate && (
-            <button onClick={() => setShowModal(true)} className="btn-primary">
-              <Plus size={16} /> New Transaction
-            </button>
-          )
+          <div className="flex items-center gap-2">
+            <ExportButtons kind="finance" filters={{ status: filterStatus, type: filterType }} />
+            {canCreate && (
+              <button onClick={() => setShowModal(true)} className="btn-primary">
+                <Plus size={16} /> New Transaction
+              </button>
+            )}
+          </div>
         }
       />
 
@@ -173,7 +177,7 @@ export function Finance() {
             key={s}
             onClick={() => setFilterStatus(s)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all capitalize ${
-              filterStatus === s ? 'bg-brand-600/20 text-brand-300' : 'bg-surface-800/50 text-surface-400 hover:bg-surface-800'
+              filterStatus === s ? 'bg-brand-100 text-brand-700' : 'bg-surface-800/50 text-surface-400 hover:bg-surface-800'
             }`}
           >
             {s}
@@ -185,7 +189,7 @@ export function Finance() {
             key={t}
             onClick={() => setFilterType(t)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all capitalize ${
-              filterType === t ? 'bg-brand-600/20 text-brand-300' : 'bg-surface-800/50 text-surface-400 hover:bg-surface-800'
+              filterType === t ? 'bg-brand-100 text-brand-700' : 'bg-surface-800/50 text-surface-400 hover:bg-surface-800'
             }`}
           >
             {t}
@@ -227,7 +231,7 @@ export function Finance() {
                       {tx.description && <p className="text-surface-500 text-xs truncate max-w-[200px]">{tx.description}</p>}
                     </td>
                     <td className="px-4 py-3.5 text-surface-400">{tx.category}</td>
-                    <td className={`px-4 py-3.5 text-right font-semibold tabular-nums ${tx.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <td className={`px-4 py-3.5 text-right font-semibold tabular-nums ${tx.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}>
                       {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
                     </td>
                     <td className="px-4 py-3.5"><StatusBadge status={tx.status} /></td>
@@ -255,7 +259,7 @@ export function Finance() {
           <div className="flex rounded-xl overflow-hidden border border-surface-700/60">
             {(['income', 'expense'] as const).map((t) => (
               <label key={t} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium cursor-pointer transition-all capitalize ${
-                txType === t ? (t === 'income' ? 'bg-emerald-600/20 text-emerald-300' : 'bg-red-600/20 text-red-300') : 'text-surface-400 hover:bg-surface-800'
+                txType === t ? (t === 'income' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700') : 'text-surface-400 hover:bg-surface-800'
               }`}>
                 <input type="radio" value={t} {...register('type')} className="sr-only" />
                 {t === 'income' ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
@@ -268,13 +272,13 @@ export function Finance() {
             <div className="col-span-2">
               <label className="label">Title</label>
               <input className="input" placeholder="e.g. Chalk and whiteboard markers" {...register('title')} />
-              {errors.title && <p className="text-xs text-red-400 mt-1">{errors.title.message}</p>}
+              {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message}</p>}
             </div>
 
             <div>
               <label className="label">Amount (₱)</label>
               <input type="number" step="0.01" className="input" placeholder="0.00" {...register('amount')} />
-              {errors.amount && <p className="text-xs text-red-400 mt-1">{errors.amount.message}</p>}
+              {errors.amount && <p className="text-xs text-red-600 mt-1">{errors.amount.message}</p>}
             </div>
 
             <div>
@@ -285,7 +289,7 @@ export function Finance() {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-              {errors.category && <p className="text-xs text-red-400 mt-1">{errors.category.message}</p>}
+              {errors.category && <p className="text-xs text-red-600 mt-1">{errors.category.message}</p>}
             </div>
 
             <div className="col-span-2">
@@ -333,7 +337,7 @@ export function Finance() {
               <p className="text-lg font-bold text-surface-100">{viewTx.title}</p>
               {viewTx.description && <p className="text-surface-400 text-sm mt-1">{viewTx.description}</p>}
             </div>
-            <div className={`text-2xl font-bold ${viewTx.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
+            <div className={`text-2xl font-bold ${viewTx.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}>
               {viewTx.type === 'income' ? '+' : '-'}{formatCurrency(viewTx.amount)}
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">

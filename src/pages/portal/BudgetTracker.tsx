@@ -42,7 +42,7 @@ function BudgetBar({ spent, limit }: { spent: number; limit: number }) {
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between text-xs">
-        <span className={over ? 'text-red-400 font-medium' : warn ? 'text-yellow-400' : 'text-surface-400'}>
+        <span className={over ? 'text-red-600 font-medium' : warn ? 'text-yellow-600' : 'text-surface-400'}>
           {over ? `Over by ${formatCurrency(spent - limit)}` : `${formatCurrency(spent)} spent`}
         </span>
         <span className="text-surface-500">{formatCurrency(limit)} limit</span>
@@ -182,14 +182,14 @@ export function BudgetTracker() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="mb-6 flex items-start gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300"
+            className="mb-6 flex items-start gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700"
           >
             <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium">
                 {overBudget.length} budget{overBudget.length > 1 ? 's' : ''} exceeded
               </p>
-              <p className="text-xs text-red-400 mt-0.5">
+              <p className="text-xs text-red-600 mt-0.5">
                 {overBudget.map((g) => `${g.category} (${g.period})`).join(', ')}
               </p>
             </div>
@@ -242,15 +242,15 @@ export function BudgetTracker() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     {over ? (
-                      <span className="flex items-center gap-1 text-xs text-red-400 font-medium">
+                      <span className="flex items-center gap-1 text-xs text-red-600 font-medium">
                         <AlertTriangle size={12} /> Over
                       </span>
                     ) : warn ? (
-                      <span className="flex items-center gap-1 text-xs text-yellow-400 font-medium">
+                      <span className="flex items-center gap-1 text-xs text-yellow-600 font-medium">
                         <AlertTriangle size={12} /> Warning
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-xs text-emerald-400 font-medium">
+                      <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
                         <CheckCircle size={12} /> OK
                       </span>
                     )}
@@ -258,7 +258,7 @@ export function BudgetTracker() {
                       <button
                         onClick={() => handleDelete(goal)}
                         disabled={deleting === goal.id}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-surface-600 hover:text-red-400 hover:bg-surface-800 transition-all"
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-surface-600 hover:text-red-600 hover:bg-surface-800 transition-all"
                       >
                         {deleting === goal.id ? <Spinner size={12} /> : <Trash2 size={12} />}
                       </button>
@@ -269,7 +269,7 @@ export function BudgetTracker() {
                 <BudgetBar spent={spent} limit={goal.limit} />
 
                 <div className="flex items-center justify-between mt-3">
-                  <span className={`text-lg font-bold tabular-nums ${over ? 'text-red-400' : 'text-surface-100'}`}>
+                  <span className={`text-lg font-bold tabular-nums ${over ? 'text-red-600' : 'text-surface-100'}`}>
                     {Math.round(pct)}%
                   </span>
                   <span className="text-xs text-surface-500">
@@ -287,15 +287,15 @@ export function BudgetTracker() {
         <div className="mt-6 card bg-surface-900/40">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-emerald-400">{goals.filter((g) => (spending[`${g.category}_${g.period}`] ?? 0) < g.limit * 0.8).length}</p>
+              <p className="text-2xl font-bold text-emerald-600">{goals.filter((g) => (spending[`${g.category}_${g.period}`] ?? 0) < g.limit * 0.8).length}</p>
               <p className="text-xs text-surface-500 mt-1">Under Budget</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-yellow-400">{goals.filter((g) => { const p = (spending[`${g.category}_${g.period}`] ?? 0) / g.limit; return p >= 0.8 && p < 1 }).length}</p>
+              <p className="text-2xl font-bold text-yellow-600">{goals.filter((g) => { const p = (spending[`${g.category}_${g.period}`] ?? 0) / g.limit; return p >= 0.8 && p < 1 }).length}</p>
               <p className="text-xs text-surface-500 mt-1">Near Limit</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-red-400">{overBudget.length}</p>
+              <p className="text-2xl font-bold text-red-600">{overBudget.length}</p>
               <p className="text-xs text-surface-500 mt-1">Over Budget</p>
             </div>
           </div>
@@ -311,13 +311,13 @@ export function BudgetTracker() {
               <option value="">Select category</option>
               {EXPENSE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
-            {errors.category && <p className="text-xs text-red-400 mt-1">{errors.category.message}</p>}
+            {errors.category && <p className="text-xs text-red-600 mt-1">{errors.category.message}</p>}
           </div>
 
           <div>
             <label className="label">Spending Limit (₱)</label>
             <input type="number" step="0.01" className="input" placeholder="0.00" {...register('limit')} />
-            {errors.limit && <p className="text-xs text-red-400 mt-1">{errors.limit.message}</p>}
+            {errors.limit && <p className="text-xs text-red-600 mt-1">{errors.limit.message}</p>}
           </div>
 
           <div>

@@ -6,6 +6,52 @@
     "gallery":       { ".read": true,  ".write": "auth != null" },
     "officers":      { ".read": true,  ".write": "auth != null" },
     "transactions":  { ".read": true,  ".write": "auth != null" },
+    "rsvps": {
+      ".read": true,
+      "$eventId": {
+        "count": {
+          ".write": true,
+          ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() == data.val() + 1 || newData.val() == data.val() - 1)"
+        },
+        "list": {
+          ".write": true,
+          "$rsvpId": {
+            ".validate": "newData.hasChildren(['at']) && newData.child('at').isNumber() && (!data.exists() || auth != null)"
+          }
+        }
+      }
+    },
+    "comments": {
+      ".read": true,
+      "$resourceType": {
+        "$resourceId": {
+          "$commentId": {
+            ".write": "auth != null || !data.exists()",
+            ".validate": "newData.hasChildren(['name', 'text', 'createdAt']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 1000 && newData.child('name').isString() && newData.child('name').val().length <= 60"
+          }
+        }
+      }
+    },
+    "reactions": {
+      ".read": true,
+      "$resourceType": {
+        "$resourceId": {
+          "$emoji": {
+            "count": {
+              ".write": true,
+              ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() == data.val() + 1 || newData.val() == data.val() - 1)"
+            }
+          }
+        }
+      }
+    },
+    "suggestions": {
+      "$suggestionId": {
+        ".read": "auth != null",
+        ".write": "auth != null || !data.exists()",
+        ".validate": "newData.hasChildren(['message', 'createdAt']) && newData.child('message').isString() && newData.child('message').val().length > 0 && newData.child('message').val().length <= 2000"
+      }
+    },
     "audit_records": { ".read": "auth != null", ".write": "auth != null" },
     "logs":          { ".read": "auth != null", ".write": "auth != null" },
     "users":         { ".read": "auth != null", ".write": "auth != null" },

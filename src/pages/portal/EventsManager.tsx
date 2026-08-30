@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Plus, Edit2, Trash2, Upload, MapPin, Tag } from 'lucide-react'
+import { Calendar, Plus, Edit2, Trash2, Upload, MapPin, Tag, Link2, Check, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -27,6 +27,16 @@ interface Event {
   updatedAt: number
 }
 
+interface RsvpEntry {
+  name: string
+  at: number
+}
+
+interface RsvpNode {
+  count?: number
+  list?: Record<string, RsvpEntry>
+}
+
 const schema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
@@ -46,13 +56,44 @@ export function EventsManager() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [rsvpCounts, setRsvpCounts] = useState<Record<string, number>>({})
+  const [attendeesEvent, setAttendeesEvent] = useState<Event | null>(null)
+  const [attendeesList, setAttendeesList] = useState<RsvpEntry[] | null>(null)
+
+  async function handleShare(event: Event) {
+    const url = `${window.location.origin}${window.location.pathname}#/events/${event.id}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: event.title, text: event.description?.slice(0, 120), url })
+        return
+      } catch {
+        // user cancelled or not supported — fall through to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      const el = document.createElement('input')
+      el.value = url
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+    }
+    setCopiedId(event.id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   })
 
   async function load() {
-    const data = await dbGet<Record<string, Event>>('events')
+    const [data, rsvps] = await Promise.all([
+      dbGet<Record<string, Event>>('events'),
+      dbGet<Record<string, RsvpNode>>('rsvps'),
+    ])
     if (data) {
       setEvents(
         Object.entries(data)
@@ -60,6 +101,20 @@ export function EventsManager() {
           .sort((a, b) => b.date - a.date)
       )
     } else { setEvents([]) }
+
+    const counts: Record<string, number> = {}
+    if (rsvps) for (const [eventId, node] of Object.entries(rsvps)) counts[eventId] = node.count ?? 0
+    setRsvpCounts(counts)
+  }
+
+  async function openAttendees(event: Event) {
+    setAttendeesEvent(event)
+    setAttendeesList(null)
+    const node = await dbGet<RsvpNode>(`rsvps/${event.id}`)
+    const list = node?.list
+      ? Object.values(node.list).sort((a, b) => a.at - b.at)
+      : []
+    setAttendeesList(list)
   }
 
   useEffect(() => { load().finally(() => setLoading(false)) }, [])
@@ -231,10 +286,29 @@ export function EventsManager() {
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className="text-sm font-semibold text-surface-100 flex-1">{event.title}</p>
                   <div className="flex gap-1 flex-shrink-0">
-                    <button onClick={() => openEdit(event)} className="p-1.5 rounded-lg text-surface-500 hover:text-brand-400 hover:bg-brand-600/10 transition-all">
+                    <button
+                      onClick={() => openAttendees(event)}
+                      title="View RSVPs"
+                      className="relative p-1.5 rounded-lg text-surface-500 hover:text-brand-600 hover:bg-brand-600/10 transition-all"
+                    >
+                      <Users size={13} />
+                      {rsvpCounts[event.id] > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-[3px] rounded-full bg-brand-600 text-white text-[9px] font-bold flex items-center justify-center">
+                          {rsvpCounts[event.id]}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleShare(event)}
+                      title="Copy public link"
+                      className="p-1.5 rounded-lg text-surface-500 hover:text-brand-600 hover:bg-brand-600/10 transition-all"
+                    >
+                      {copiedId === event.id ? <Check size={13} className="text-green-500" /> : <Link2 size={13} />}
+                    </button>
+                    <button onClick={() => openEdit(event)} className="p-1.5 rounded-lg text-surface-500 hover:text-brand-600 hover:bg-brand-600/10 transition-all">
                       <Edit2 size={13} />
                     </button>
-                    <button onClick={() => deleteEvent(event)} disabled={deleting === event.id} className="p-1.5 rounded-lg text-surface-500 hover:text-red-400 hover:bg-red-600/10 transition-all">
+                    <button onClick={() => deleteEvent(event)} disabled={deleting === event.id} className="p-1.5 rounded-lg text-surface-500 hover:text-red-600 hover:bg-red-600/10 transition-all">
                       {deleting === event.id ? <Spinner size={13} /> : <Trash2 size={13} />}
                     </button>
                   </div>
@@ -269,7 +343,7 @@ export function EventsManager() {
               {coverPreview ? (
                 <div className="relative h-36 rounded-xl overflow-hidden border border-surface-700">
                   <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-surface-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-[#2b2419]/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Upload size={20} className="text-white" />
                   </div>
                 </div>
@@ -286,20 +360,20 @@ export function EventsManager() {
           <div>
             <label className="label">Event Title</label>
             <input className="input" placeholder="e.g. Foundation Day Celebration" {...register('title')} />
-            {errors.title && <p className="text-xs text-red-400 mt-1">{errors.title.message}</p>}
+            {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message}</p>}
           </div>
 
           <div>
             <label className="label">Description</label>
             <textarea className="input h-24 resize-none" placeholder="Describe what happened at this event…" {...register('description')} />
-            {errors.description && <p className="text-xs text-red-400 mt-1">{errors.description.message}</p>}
+            {errors.description && <p className="text-xs text-red-600 mt-1">{errors.description.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Date</label>
               <input type="date" className="input" {...register('date')} />
-              {errors.date && <p className="text-xs text-red-400 mt-1">{errors.date.message}</p>}
+              {errors.date && <p className="text-xs text-red-600 mt-1">{errors.date.message}</p>}
             </div>
             <div>
               <label className="label">Location (optional)</label>
@@ -319,6 +393,35 @@ export function EventsManager() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        open={!!attendeesEvent}
+        onClose={() => { setAttendeesEvent(null); setAttendeesList(null) }}
+        title={attendeesEvent ? `RSVPs — ${attendeesEvent.title}` : 'RSVPs'}
+        size="sm"
+      >
+        {attendeesList === null ? (
+          <div className="flex justify-center py-8"><Spinner /></div>
+        ) : (
+          <>
+            <p className="text-xs text-surface-500 mb-3">
+              {rsvpCounts[attendeesEvent?.id ?? ''] ?? 0} going · {attendeesList.length} named
+            </p>
+            {attendeesList.length === 0 ? (
+              <p className="text-sm text-surface-600 text-center py-6">No names given yet — some RSVPs are anonymous.</p>
+            ) : (
+              <ul className="space-y-1.5 max-h-72 overflow-y-auto">
+                {attendeesList.map((a, i) => (
+                  <li key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-surface-900/60 border border-surface-800 text-sm">
+                    <span className="text-surface-200">{a.name}</span>
+                    <span className="text-xs text-surface-600">{formatDate(a.at)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
       </Modal>
     </motion.div>
   )

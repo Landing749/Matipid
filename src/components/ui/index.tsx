@@ -24,34 +24,34 @@ const colorConfig: Record<
   { icon: string; bar: string; glow: string; trend: string }
 > = {
   brand: {
-    icon: 'bg-brand-600/15 text-brand-400',
+    icon: 'bg-brand-100 text-brand-600',
     bar: 'from-brand-400 via-brand-500 to-brand-700',
-    glow: 'rgba(124,26,255,0.12)',
-    trend: 'text-brand-400',
+    glow: 'rgba(116,88,189,0.14)',
+    trend: 'text-brand-600',
   },
   gold: {
-    icon: 'bg-gold-500/15 text-gold-400',
+    icon: 'bg-gold-100 text-gold-700',
     bar: 'from-gold-300 via-gold-400 to-gold-600',
-    glow: 'rgba(245,158,11,0.12)',
-    trend: 'text-gold-400',
+    glow: 'rgba(207,136,54,0.14)',
+    trend: 'text-gold-700',
   },
   green: {
-    icon: 'bg-emerald-500/15 text-emerald-400',
-    bar: 'from-emerald-300 via-emerald-400 to-emerald-600',
-    glow: 'rgba(16,185,129,0.10)',
-    trend: 'text-emerald-400',
+    icon: 'bg-clay-100 text-clay-700',
+    bar: 'from-clay-300 via-clay-400 to-clay-600',
+    glow: 'rgba(79,162,118,0.12)',
+    trend: 'text-clay-700',
   },
   red: {
-    icon: 'bg-red-500/15 text-red-400',
+    icon: 'bg-red-100 text-red-700',
     bar: 'from-red-400 via-red-500 to-red-700',
-    glow: 'rgba(239,68,68,0.10)',
-    trend: 'text-red-400',
+    glow: 'rgba(190,110,90,0.12)',
+    trend: 'text-red-600',
   },
   gray: {
-    icon: 'bg-surface-700/30 text-surface-400',
-    bar: 'from-surface-600 via-surface-500 to-surface-700',
-    glow: 'rgba(113,113,122,0.08)',
-    trend: 'text-surface-400',
+    icon: 'bg-surface-800 text-surface-500',
+    bar: 'from-surface-500 via-surface-600 to-surface-700',
+    glow: 'rgba(140,124,100,0.12)',
+    trend: 'text-surface-500',
   },
 }
 
@@ -99,8 +99,8 @@ export function StatCard({ label, value, icon: Icon, trend, color = 'brand', loa
           <span className={cn(
             'inline-flex items-center gap-0.5 text-[11px] font-semibold rounded-full px-2 py-0.5',
             trend.value >= 0
-              ? 'text-emerald-400 bg-emerald-500/10'
-              : 'text-red-400 bg-red-500/10'
+              ? 'text-emerald-600 bg-emerald-500/10'
+              : 'text-red-600 bg-red-500/10'
           )}>
             {trend.value >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
             {Math.abs(trend.value)}%
@@ -146,7 +146,7 @@ export function EmptyState({
       {/* Ambient glow */}
       <div
         className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-2/3 w-72 h-48 rounded-full blur-3xl"
-        style={{ background: 'radial-gradient(ellipse, rgba(124,26,255,0.07) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(ellipse, rgba(116,88,189,0.10) 0%, transparent 70%)' }}
       />
 
       {Illustration ? (
@@ -157,12 +157,12 @@ export function EmptyState({
           transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
           className="relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center"
           style={{
-            background: 'rgba(124,26,255,0.08)',
-            border: '1px solid rgba(124,26,255,0.2)',
-            boxShadow: '0 8px 24px -4px rgba(124,26,255,0.15)',
+            background: 'rgba(116,88,189,0.10)',
+            border: '1px solid rgba(116,88,189,0.22)',
+            boxShadow: '0 8px 24px -4px rgba(116,88,189,0.18)',
           }}
         >
-          <Icon size={26} className="relative text-brand-400" />
+          <Icon size={26} className="relative text-brand-600" />
         </motion.div>
       ) : null}
 
@@ -213,7 +213,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-surface-950/75 backdrop-blur-sm"
+            className="absolute inset-0 scrim backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
@@ -222,20 +222,19 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ type: 'spring', stiffness: 360, damping: 30 }}
             className={cn(
-              'relative w-full bg-surface-900 border border-surface-700/50 rounded-2xl shadow-2xl overflow-hidden',
+              'relative w-full clay-panel overflow-hidden',
               sizeMap[size]
             )}
-            style={{ boxShadow: '0 24px 64px -8px rgba(0,0,0,0.7), 0 0 0 1px rgba(124,26,255,0.08) inset' }}
           >
             {/* Top accent */}
             <div className="absolute top-0 left-0 right-0 h-[1px]"
-              style={{ background: 'linear-gradient(90deg, transparent, rgba(124,26,255,0.4), transparent)' }} />
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(116,88,189,0.4), transparent)' }} />
 
             <div className="flex items-center justify-between px-5 py-4 border-b border-surface-800/60">
               <h2 className="text-[14px] font-semibold text-surface-100 font-display">{title}</h2>
               <button
                 onClick={onClose}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-surface-500 hover:text-surface-200 hover:bg-surface-800 transition-all"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-surface-500 hover:text-surface-200 hover:bg-white/60 transition-all"
               >
                 <X size={14} />
               </button>
@@ -251,7 +250,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
 // ─── Spinner ─────────────────────────────────────────────────────────────────
 
 export function Spinner({ size = 16 }: { size?: number }) {
-  return <Loader2 size={size} className="text-brand-400 animate-spin" />
+  return <Loader2 size={size} className="text-brand-600 animate-spin" />
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -303,7 +302,7 @@ export function PageHeader({
         {/* Left accent bar */}
         <div
           className="w-[3px] h-8 rounded-full flex-shrink-0 mt-0.5"
-          style={{ background: 'linear-gradient(180deg, #bf99ff 0%, #7c1aff 100%)' }}
+          style={{ background: 'linear-gradient(180deg, #a688dd 0%, #5f479c 100%)' }}
         />
         <div>
           <h1 className="text-[22px] font-bold text-surface-100 font-display tracking-tight leading-tight">{title}</h1>

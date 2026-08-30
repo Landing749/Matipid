@@ -56,7 +56,7 @@ function RoleBadge({ role }: { role?: string }) {
   if (!role || role === 'none') return null
   const found = ROLES.find((r) => r.value === role)
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-brand-600/15 text-brand-300">
+    <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-brand-100 text-brand-700">
       {found?.icon} {found?.label}
     </span>
   )
@@ -64,9 +64,9 @@ function RoleBadge({ role }: { role?: string }) {
 
 function StatusBadgeLocal({ status }: { status?: string }) {
   const map: Record<string, string> = {
-    active: 'bg-emerald-500/15 text-emerald-400',
-    transferred: 'bg-yellow-500/15 text-yellow-400',
-    dropped: 'bg-red-500/15 text-red-400',
+    active: 'bg-emerald-500/15 text-emerald-600',
+    transferred: 'bg-yellow-500/15 text-yellow-600',
+    dropped: 'bg-red-500/15 text-red-600',
   }
   return (
     <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full capitalize', map[status ?? 'active'] ?? map['active'])}>
@@ -250,7 +250,7 @@ export function MembersDirectory() {
           {['all', 'male', 'female'].map((g) => (
             <button key={g} onClick={() => setFilterGender(g)}
               className={cn('px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all capitalize',
-                filterGender === g ? 'bg-brand-600/20 text-brand-300' : 'bg-surface-800/50 text-surface-400 hover:bg-surface-800'
+                filterGender === g ? 'bg-brand-100 text-brand-700' : 'bg-surface-800/50 text-surface-400 hover:bg-surface-800'
               )}>
               {g}
             </button>
@@ -261,7 +261,7 @@ export function MembersDirectory() {
           {['all', 'active', 'transferred', 'dropped'].map((s) => (
             <button key={s} onClick={() => setFilterStatus(s)}
               className={cn('px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all capitalize',
-                filterStatus === s ? 'bg-brand-600/20 text-brand-300' : 'bg-surface-800/50 text-surface-400 hover:bg-surface-800'
+                filterStatus === s ? 'bg-brand-100 text-brand-700' : 'bg-surface-800/50 text-surface-400 hover:bg-surface-800'
               )}>
               {s}
             </button>
@@ -325,11 +325,11 @@ export function MembersDirectory() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1 justify-end">
                           <button onClick={() => openEdit(member)}
-                            className="p-1.5 rounded-lg text-surface-500 hover:text-brand-400 hover:bg-surface-800 transition-all">
+                            className="p-1.5 rounded-lg text-surface-500 hover:text-brand-600 hover:bg-surface-800 transition-all">
                             <Edit2 size={13} />
                           </button>
                           <button onClick={() => handleDelete(member)} disabled={deleting === member.id}
-                            className="p-1.5 rounded-lg text-surface-500 hover:text-red-400 hover:bg-surface-800 transition-all">
+                            className="p-1.5 rounded-lg text-surface-500 hover:text-red-600 hover:bg-surface-800 transition-all">
                             {deleting === member.id ? <Spinner size={13} /> : <Trash2 size={13} />}
                           </button>
                         </div>
@@ -353,18 +353,18 @@ export function MembersDirectory() {
             <div className="col-span-2">
               <label className="label">LRN (12 digits)</label>
               <input className="input font-mono" placeholder="000000000000" maxLength={12} {...register('lrn')} />
-              {errors.lrn && <p className="text-xs text-red-400 mt-1">{errors.lrn.message}</p>}
+              {errors.lrn && <p className="text-xs text-red-600 mt-1">{errors.lrn.message}</p>}
             </div>
 
             <div>
               <label className="label">Last Name</label>
               <input className="input" placeholder="Dela Cruz" {...register('lastName')} />
-              {errors.lastName && <p className="text-xs text-red-400 mt-1">{errors.lastName.message}</p>}
+              {errors.lastName && <p className="text-xs text-red-600 mt-1">{errors.lastName.message}</p>}
             </div>
             <div>
               <label className="label">First Name</label>
               <input className="input" placeholder="Juan" {...register('firstName')} />
-              {errors.firstName && <p className="text-xs text-red-400 mt-1">{errors.firstName.message}</p>}
+              {errors.firstName && <p className="text-xs text-red-600 mt-1">{errors.firstName.message}</p>}
             </div>
 
             <div>

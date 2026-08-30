@@ -2,15 +2,22 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
-  Megaphone, X, ExternalLink
+  Megaphone, X, ExternalLink, Plus, Upload, MapPin, Link2, Check
 } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   isSameDay, isSameMonth, isToday, addMonths, subMonths,
-  startOfWeek, endOfWeek, parseISO
+  startOfWeek, endOfWeek
 } from 'date-fns'
-import { dbGet } from '@/lib/firebase'
-import { PageHeader, Spinner } from '@/components/ui'
+import { toast } from 'sonner'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { v4 as uuid } from 'uuid'
+import { dbGet, dbSet, logActivity, saveVersion } from '@/lib/firebase'
+import { uploadImage } from '@/lib/cloudinary'
+import { useAuth } from '@/contexts/AuthContext'
+import { PageHeader, Spinner, Modal } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 
@@ -40,6 +47,14 @@ interface RawAnnouncement {
   pinned?: boolean
 }
 
+const eventSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(1, 'Description is required'),
+  location: z.string().optional(),
+  tags: z.string().optional(),
+})
+type EventFormValues = z.infer<typeof eventSchema>
+
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 function EventDot({ type }: { type: 'event' | 'announcement' }) {
@@ -52,31 +67,132 @@ function EventDot({ type }: { type: 'event' | 'announcement' }) {
 }
 
 export function CalendarView() {
+  const { user, profile } = useAuth()
   const [current, setCurrent] = useState(new Date())
   const [events, setEvents] = useState<CalEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Date | null>(null)
   const [detailEvent, setDetailEvent] = useState<CalEvent | null>(null)
+  const [showEventModal, setShowEventModal] = useState(false)
+  const [eventDate, setEventDate] = useState<Date>(new Date())
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [copied, setCopied] = useState(false)
 
-  useEffect(() => {
-    Promise.all([
+  async function handleShare(ev: CalEvent) {
+    if (ev.type !== 'event') return
+    const url = `${window.location.origin}${window.location.pathname}#/events/${ev.id}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: ev.title, text: ev.description?.slice(0, 120), url })
+        return
+      } catch {
+        // user cancelled or not supported — fall through to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      const el = document.createElement('input')
+      el.value = url
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<EventFormValues>({
+    resolver: zodResolver(eventSchema),
+  })
+
+  async function load() {
+    const [evData, annData] = await Promise.all([
       dbGet<Record<string, RawEvent>>('events'),
       dbGet<Record<string, RawAnnouncement>>('announcements'),
-    ]).then(([evData, annData]) => {
-      const list: CalEvent[] = []
-      if (evData) {
-        Object.entries(evData).forEach(([id, v]) => {
-          list.push({ id, title: v.title, description: v.description, date: v.date, endDate: v.endDate, location: v.location, type: 'event' })
-        })
+    ])
+    const list: CalEvent[] = []
+    if (evData) {
+      Object.entries(evData).forEach(([id, v]) => {
+        list.push({ id, title: v.title, description: v.description, date: v.date, endDate: v.endDate, location: v.location, type: 'event' })
+      })
+    }
+    if (annData) {
+      Object.entries(annData).forEach(([id, v]) => {
+        list.push({ id, title: v.title, description: v.content, date: v.createdAt, type: 'announcement', pinned: v.pinned })
+      })
+    }
+    setEvents(list)
+  }
+
+  useEffect(() => { load().finally(() => setLoading(false)) }, [])
+
+  function openAddEvent(day: Date) {
+    setEventDate(day)
+    reset({ title: '', description: '', location: '', tags: '' })
+    setCoverFile(null)
+    setCoverPreview(null)
+    setShowEventModal(true)
+  }
+
+  function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCoverFile(file)
+    setCoverPreview(URL.createObjectURL(file))
+    e.target.value = ''
+  }
+
+  async function onSubmitEvent(values: EventFormValues) {
+    if (!user || !profile) return
+
+    let coverImage: string | undefined
+    if (coverFile) {
+      setUploading(true)
+      try {
+        const res = await uploadImage(coverFile, 'events')
+        coverImage = res.secure_url
+      } catch {
+        toast.error('Image upload failed.')
+        setUploading(false)
+        return
       }
-      if (annData) {
-        Object.entries(annData).forEach(([id, v]) => {
-          list.push({ id, title: v.title, description: v.content, date: v.createdAt, type: 'announcement', pinned: v.pinned })
-        })
-      }
-      setEvents(list)
-    }).finally(() => setLoading(false))
-  }, [])
+      setUploading(false)
+    }
+
+    const now = Date.now()
+    const tags = values.tags?.split(',').map((t) => t.trim()).filter(Boolean)
+    const id = uuid()
+    const event = {
+      id,
+      title: values.title,
+      description: values.description,
+      date: eventDate.getTime(),
+      location: values.location || undefined,
+      coverImage,
+      tags: tags?.length ? tags : undefined,
+      createdBy: user.uid,
+      createdByEmail: profile.email,
+      createdAt: now,
+      updatedAt: now,
+    }
+    await dbSet(`events/${id}`, JSON.parse(JSON.stringify(event)))
+    await saveVersion('events', id, event, user.uid, profile.email)
+    await logActivity({
+      userUid: user.uid, userEmail: profile.email, role: profile.role,
+      action: 'CREATE_EVENT', targetResource: 'events', targetId: id, newValue: event,
+    })
+    toast.success('Event added to the calendar.')
+
+    setShowEventModal(false)
+    reset()
+    setCoverFile(null)
+    setCoverPreview(null)
+    load()
+  }
 
   const monthStart = startOfMonth(current)
   const monthEnd = endOfMonth(current)
@@ -102,7 +218,12 @@ export function CalendarView() {
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
         title="Calendar"
-        description="Events and announcements in one view."
+        description="Events and announcements in one view — click a date to add an event."
+        action={
+          <button onClick={() => openAddEvent(selected ?? new Date())} className="btn-primary">
+            <Plus size={16} /> Add Event
+          </button>
+        }
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
@@ -157,12 +278,20 @@ export function CalendarView() {
                     key={day.toISOString()}
                     onClick={() => setSelected(isSameDay(day, selected ?? new Date(0)) ? null : day)}
                     className={cn(
-                      'relative min-h-[72px] p-2 text-left border-b border-r border-surface-800/30 transition-all',
+                      'group/day relative min-h-[72px] p-2 text-left border-b border-r border-surface-800/30 transition-all',
                       !isCurrentMonth && 'opacity-30',
                       isSelected && 'bg-brand-600/10',
                       !isSelected && 'hover:bg-surface-800/30'
                     )}
                   >
+                    <span
+                      role="button"
+                      onClick={(e) => { e.stopPropagation(); openAddEvent(day) }}
+                      title="Add event on this date"
+                      className="absolute top-1 right-1 w-5 h-5 rounded-md flex items-center justify-center text-surface-500 hover:text-white hover:bg-brand-500 opacity-0 group-hover/day:opacity-100 transition-all z-10"
+                    >
+                      <Plus size={12} />
+                    </span>
                     <span className={cn(
                       'text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full',
                       isTodayDay ? 'bg-brand-500 text-white' : 'text-surface-400'
@@ -184,7 +313,7 @@ export function CalendarView() {
                             key={e.id}
                             className={cn(
                               'text-[10px] leading-tight truncate px-1 py-0.5 rounded',
-                              e.type === 'event' ? 'bg-brand-600/15 text-brand-300' : 'bg-gold-500/10 text-gold-300'
+                              e.type === 'event' ? 'bg-brand-100 text-brand-700' : 'bg-gold-100 text-gold-700'
                             )}
                           >
                             {e.title}
@@ -225,12 +354,27 @@ export function CalendarView() {
               >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-surface-800/60">
                   <p className="text-sm font-semibold text-surface-200">{format(selected, 'MMM dd, yyyy')}</p>
-                  <button onClick={() => setSelected(null)} className="text-surface-600 hover:text-surface-300 transition-colors">
-                    <X size={14} />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openAddEvent(selected)}
+                      title="Add event on this date"
+                      className="w-6 h-6 flex items-center justify-center rounded-md text-surface-500 hover:text-brand-600 hover:bg-brand-600/10 transition-all"
+                    >
+                      <Plus size={13} />
+                    </button>
+                    <button onClick={() => setSelected(null)} className="text-surface-600 hover:text-surface-300 transition-colors">
+                      <X size={14} />
+                    </button>
+                  </div>
                 </div>
                 {selectedDayEvents.length === 0 ? (
-                  <p className="text-center text-surface-500 text-sm py-6">Nothing scheduled</p>
+                  <button
+                    onClick={() => openAddEvent(selected)}
+                    className="w-full flex flex-col items-center justify-center gap-1.5 py-6 text-surface-500 hover:text-brand-600 transition-colors"
+                  >
+                    <Plus size={16} />
+                    <span className="text-sm">Nothing scheduled — add an event</span>
+                  </button>
                 ) : (
                   <div className="divide-y divide-surface-800/40">
                     {selectedDayEvents.map((e) => (
@@ -290,7 +434,7 @@ export function CalendarView() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-            onClick={() => setDetailEvent(null)}
+            onClick={() => { setDetailEvent(null); setCopied(false) }}
           >
             <motion.div
               initial={{ scale: 0.95, y: 12 }}
@@ -302,18 +446,18 @@ export function CalendarView() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
                   {detailEvent.type === 'event' ? (
-                    <CalendarIcon size={16} className="text-brand-400" />
+                    <CalendarIcon size={16} className="text-brand-600" />
                   ) : (
-                    <Megaphone size={16} className="text-gold-400" />
+                    <Megaphone size={16} className="text-gold-700" />
                   )}
                   <span className={cn(
                     'text-xs font-medium capitalize px-2 py-0.5 rounded-full',
-                    detailEvent.type === 'event' ? 'bg-brand-600/20 text-brand-300' : 'bg-gold-500/15 text-gold-300'
+                    detailEvent.type === 'event' ? 'bg-brand-100 text-brand-700' : 'bg-gold-100 text-gold-700'
                   )}>
                     {detailEvent.type}
                   </span>
                 </div>
-                <button onClick={() => setDetailEvent(null)} className="text-surface-500 hover:text-surface-200 transition-colors">
+                <button onClick={() => { setDetailEvent(null); setCopied(false) }} className="text-surface-500 hover:text-surface-200 transition-colors">
                   <X size={16} />
                 </button>
               </div>
@@ -327,10 +471,16 @@ export function CalendarView() {
               {detailEvent.description && (
                 <p className="text-surface-300 text-sm leading-relaxed">{detailEvent.description}</p>
               )}
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end gap-2 pt-2">
+                {detailEvent.type === 'event' && (
+                  <button onClick={() => handleShare(detailEvent)} className="btn-secondary text-sm flex items-center gap-1.5">
+                    {copied ? <Check size={13} className="text-green-500" /> : <Link2 size={13} />}
+                    {copied ? 'Copied!' : 'Share'}
+                  </button>
+                )}
                 <Link
                   to={detailEvent.type === 'event' ? '/portal/events' : '/portal/announcements'}
-                  onClick={() => setDetailEvent(null)}
+                  onClick={() => { setDetailEvent(null); setCopied(false) }}
                   className="btn-secondary text-sm flex items-center gap-1.5"
                 >
                   <ExternalLink size={13} /> Manage
@@ -340,6 +490,65 @@ export function CalendarView() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Add event modal */}
+      <Modal
+        open={showEventModal}
+        onClose={() => { setShowEventModal(false); reset(); setCoverFile(null); setCoverPreview(null) }}
+        title={`Add Event — ${format(eventDate, 'MMM dd, yyyy')}`}
+        size="lg"
+      >
+        <form onSubmit={handleSubmit(onSubmitEvent)} className="space-y-4">
+          <div>
+            <label className="label">Cover Image (optional)</label>
+            <label className="relative block cursor-pointer group">
+              {coverPreview ? (
+                <div className="relative h-32 rounded-xl overflow-hidden border border-surface-700">
+                  <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-[#2b2419]/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Upload size={20} className="text-white" />
+                  </div>
+                </div>
+              ) : (
+                <div className="h-32 rounded-xl border-2 border-dashed border-surface-700 hover:border-brand-600/50 flex flex-col items-center justify-center gap-2 transition-colors">
+                  <Upload size={18} className="text-surface-500" />
+                  <span className="text-sm text-surface-500">Upload cover image</span>
+                </div>
+              )}
+              <input type="file" accept="image/*" className="sr-only" onChange={handleCoverChange} />
+            </label>
+          </div>
+
+          <div>
+            <label className="label">Event Title</label>
+            <input className="input" placeholder="e.g. Foundation Day Celebration" {...register('title')} />
+            {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message}</p>}
+          </div>
+
+          <div>
+            <label className="label">Description</label>
+            <textarea className="input h-24 resize-none" placeholder="What's happening on this date…" {...register('description')} />
+            {errors.description && <p className="text-xs text-red-600 mt-1">{errors.description.message}</p>}
+          </div>
+
+          <div>
+            <label className="label flex items-center gap-1.5"><MapPin size={12} /> Location (optional)</label>
+            <input className="input" placeholder="e.g. School Gymnasium" {...register('location')} />
+          </div>
+
+          <div>
+            <label className="label">Tags (optional, comma-separated)</label>
+            <input className="input" placeholder="e.g. Academic, Sports, Social" {...register('tags')} />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => { setShowEventModal(false); reset() }} className="btn-secondary flex-1">Cancel</button>
+            <button type="submit" disabled={isSubmitting || uploading} className="btn-primary flex-1">
+              {isSubmitting || uploading ? <Spinner size={16} /> : 'Add Event'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </motion.div>
   )
 }

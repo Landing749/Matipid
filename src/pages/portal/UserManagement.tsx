@@ -184,7 +184,7 @@ export function UserManagement() {
                   </button>
                   <button
                     onClick={() => toggleActive(u)}
-                    className={`p-1.5 rounded-lg transition-all ${u.isActive ? 'text-emerald-400 hover:bg-emerald-900/20' : 'text-red-400 hover:bg-red-900/20'}`}
+                    className={`p-1.5 rounded-lg transition-all ${u.isActive ? 'text-emerald-600 hover:bg-emerald-900/20' : 'text-red-600 hover:bg-red-900/20'}`}
                     title={u.isActive ? 'Disable account' : 'Enable account'}
                     disabled={u.uid === currentUser?.uid}
                   >
@@ -203,12 +203,12 @@ export function UserManagement() {
           <div>
             <label className="label">Email</label>
             <input type="email" className="input" placeholder="officer@section.edu" {...register('email')} />
-            {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>}
+            {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
           </div>
           <div>
             <label className="label">Temporary Password</label>
             <input type="password" className="input" placeholder="Min 8 characters" {...register('password')} />
-            {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password.message}</p>}
+            {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>}
           </div>
           <div>
             <label className="label">Display Name (optional)</label>

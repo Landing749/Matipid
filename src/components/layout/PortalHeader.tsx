@@ -52,7 +52,7 @@ export function PortalHeader() {
       {/* Subtle brand accent line at bottom */}
       <div
         className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
-        style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(124,26,255,0.25) 30%, rgba(124,26,255,0.25) 70%, transparent 100%)' }}
+        style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(116,88,189,0.3) 30%, rgba(116,88,189,0.3) 70%, transparent 100%)' }}
       />
 
       {/* Breadcrumb */}

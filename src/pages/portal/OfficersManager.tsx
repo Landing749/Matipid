@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Users, Plus, Edit2, Trash2, Upload, GripVertical } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Users, Plus, Edit2, Trash2, Upload, GripVertical, ChevronUp, ChevronDown, ChevronDown as ChevronExpand, Quote } from 'lucide-react'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { v4 as uuid } from 'uuid'
-import { dbGet, dbSet, dbRemove, logActivity } from '@/lib/firebase'
+import { dbGet, dbSet, dbUpdate, dbRemove, logActivity } from '@/lib/firebase'
 import { uploadImage } from '@/lib/cloudinary'
 import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/lib/utils'
 import { PageHeader, EmptyState, Modal, Spinner, Skeleton } from '@/components/ui'
 
 interface Officer {
@@ -17,6 +18,7 @@ interface Officer {
   position: string
   photoUrl?: string
   email?: string
+  bio?: string
   order: number
 }
 
@@ -24,6 +26,7 @@ const schema = z.object({
   name: z.string().min(1, 'Name is required'),
   position: z.string().min(1, 'Position is required'),
   email: z.union([z.string().email('Enter a valid email'), z.literal('')]).optional(),
+  bio: z.string().max(400, 'Keep it under 400 characters').optional(),
 })
 type FormValues = z.infer<typeof schema>
 
@@ -37,6 +40,12 @@ export function OfficersManager() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const [reordering, setReordering] = useState(false)
+
+  // drag-to-reorder state
+  const dragId = useRef<string | null>(null)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -57,7 +66,7 @@ export function OfficersManager() {
 
   function openCreate() {
     setEditing(null)
-    reset({ name: '', position: '', email: '' })
+    reset({ name: '', position: '', email: '', bio: '' })
     setPhotoFile(null)
     setPhotoPreview(null)
     setShowModal(true)
@@ -65,7 +74,7 @@ export function OfficersManager() {
 
   function openEdit(officer: Officer) {
     setEditing(officer)
-    reset({ name: officer.name, position: officer.position, email: officer.email ?? '' })
+    reset({ name: officer.name, position: officer.position, email: officer.email ?? '', bio: officer.bio ?? '' })
     setPhotoFile(null)
     setPhotoPreview(officer.photoUrl ?? null)
     setShowModal(true)
@@ -97,7 +106,11 @@ export function OfficersManager() {
     }
 
     if (editing) {
-      const updated = JSON.parse(JSON.stringify({ ...editing, ...values, photoUrl, email: values.email || undefined }))
+      const updated = JSON.parse(JSON.stringify({
+        ...editing, ...values, photoUrl,
+        email: values.email || undefined,
+        bio: values.bio || undefined,
+      }))
       await dbSet(`officers/${editing.id}`, updated)
       await logActivity({
         userUid: user.uid, userEmail: profile.email, role: profile.role,
@@ -111,6 +124,7 @@ export function OfficersManager() {
         name: values.name,
         position: values.position,
         email: values.email || undefined,
+        bio: values.bio || undefined,
         photoUrl,
         order: officers.length,
       }
@@ -144,6 +158,59 @@ export function OfficersManager() {
     load()
   }
 
+  // ─── Reordering ────────────────────────────────────────────────────────────
+
+  async function persistOrder(list: Officer[]) {
+    setOfficers(list)
+    const updates: Record<string, number> = {}
+    list.forEach((o, i) => { updates[`officers/${o.id}/order`] = i })
+    setReordering(true)
+    try {
+      await dbUpdate('/', updates)
+      if (user && profile) {
+        await logActivity({
+          userUid: user.uid, userEmail: profile.email, role: profile.role,
+          action: 'REORDER_OFFICERS', targetResource: 'officers',
+        })
+      }
+    } finally {
+      setReordering(false)
+    }
+  }
+
+  function moveOfficer(index: number, direction: -1 | 1) {
+    const target = index + direction
+    if (target < 0 || target >= officers.length) return
+    const next = [...officers]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    persistOrder(next)
+  }
+
+  function handleDragStart(id: string) {
+    dragId.current = id
+  }
+
+  function handleDragOver(e: React.DragEvent, id: string) {
+    e.preventDefault()
+    if (id !== dragOverId) setDragOverId(id)
+  }
+
+  function handleDrop(targetId: string) {
+    const sourceId = dragId.current
+    dragId.current = null
+    setDragOverId(null)
+    if (!sourceId || sourceId === targetId) return
+
+    const sourceIdx = officers.findIndex((o) => o.id === sourceId)
+    const targetIdx = officers.findIndex((o) => o.id === targetId)
+    if (sourceIdx === -1 || targetIdx === -1) return
+
+    const next = [...officers]
+    const [moved] = next.splice(sourceIdx, 1)
+    next.splice(targetIdx, 0, moved)
+    persistOrder(next)
+  }
+
   const POSITIONS = [
     'President', 'Vice President', 'Secretary', 'Assistant Secretary',
     'Treasurer', 'Assistant Treasurer', 'Auditor', 'P.R.O.',
@@ -154,11 +221,14 @@ export function OfficersManager() {
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
       <PageHeader
         title="Officers"
-        description={`${officers.length} officer${officers.length !== 1 ? 's' : ''} listed`}
+        description={`${officers.length} officer${officers.length !== 1 ? 's' : ''} listed · drag the handle to reorder the hierarchy`}
         action={
-          <button onClick={openCreate} className="btn-primary">
-            <Plus size={16} /> Add Officer
-          </button>
+          <div className="flex items-center gap-2">
+            {reordering && <Spinner size={14} />}
+            <button onClick={openCreate} className="btn-primary">
+              <Plus size={16} /> Add Officer
+            </button>
+          </div>
         }
       />
 
@@ -182,41 +252,107 @@ export function OfficersManager() {
           action={<button onClick={openCreate} className="btn-primary"><Plus size={14} /> Add Officer</button>}
         />
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {officers.map((officer, i) => (
-            <motion.div
-              key={officer.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04 }}
-              className="card-hover flex items-center gap-4 group"
-            >
-              {officer.photoUrl ? (
-                <img
-                  src={officer.photoUrl}
-                  alt={officer.name}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-surface-700 group-hover:border-brand-600 transition-colors flex-shrink-0"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center text-xl font-bold text-white flex-shrink-0">
-                  {officer.name[0]}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+          {officers.map((officer, i) => {
+            const isExpanded = expanded === officer.id
+            return (
+              <motion.div
+                key={officer.id}
+                layout
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+                draggable
+                onDragStart={() => handleDragStart(officer.id)}
+                onDragOver={(e) => handleDragOver(e, officer.id)}
+                onDragLeave={() => setDragOverId((cur) => (cur === officer.id ? null : cur))}
+                onDrop={() => handleDrop(officer.id)}
+                onDragEnd={() => { dragId.current = null; setDragOverId(null) }}
+                className={cn(
+                  'card-hover group flex flex-col gap-3',
+                  dragOverId === officer.id && 'ring-2 ring-brand-500/60'
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  {/* Drag handle */}
+                  <span className="cursor-grab active:cursor-grabbing text-surface-600 hover:text-surface-300 flex-shrink-0 hidden sm:block" title="Drag to reorder">
+                    <GripVertical size={15} />
+                  </span>
+
+                  {/* Rank + reorder buttons */}
+                  <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+                    <button
+                      onClick={() => moveOfficer(i, -1)}
+                      disabled={i === 0}
+                      className="p-0.5 rounded text-surface-600 hover:text-brand-600 disabled:opacity-20 disabled:pointer-events-none transition-colors"
+                      title="Move up"
+                    >
+                      <ChevronUp size={13} />
+                    </button>
+                    <span className="text-[10px] font-bold text-surface-600 tabular-nums">#{i + 1}</span>
+                    <button
+                      onClick={() => moveOfficer(i, 1)}
+                      disabled={i === officers.length - 1}
+                      className="p-0.5 rounded text-surface-600 hover:text-brand-600 disabled:opacity-20 disabled:pointer-events-none transition-colors"
+                      title="Move down"
+                    >
+                      <ChevronDown size={13} />
+                    </button>
+                  </div>
+
+                  {officer.photoUrl ? (
+                    <img
+                      src={officer.photoUrl}
+                      alt={officer.name}
+                      className="w-14 h-14 rounded-full object-cover border-2 border-surface-700 group-hover:border-brand-600 transition-colors flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center text-xl font-bold text-white flex-shrink-0">
+                      {officer.name[0]}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-surface-100 truncate">{officer.name}</p>
+                    <p className="text-xs text-brand-600 truncate">{officer.position}</p>
+                    {officer.email && <p className="text-xs text-surface-600 truncate">{officer.email}</p>}
+                  </div>
+                  <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    <button onClick={() => openEdit(officer)} className="p-1.5 rounded-lg text-surface-500 hover:text-brand-600 hover:bg-brand-600/10 transition-all">
+                      <Edit2 size={13} />
+                    </button>
+                    <button onClick={() => deleteOfficer(officer)} disabled={deleting === officer.id} className="p-1.5 rounded-lg text-surface-500 hover:text-red-600 hover:bg-red-600/10 transition-all">
+                      {deleting === officer.id ? <Spinner size={13} /> : <Trash2 size={13} />}
+                    </button>
+                  </div>
                 </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-surface-100 truncate">{officer.name}</p>
-                <p className="text-xs text-brand-400 truncate">{officer.position}</p>
-                {officer.email && <p className="text-xs text-surface-600 truncate">{officer.email}</p>}
-              </div>
-              <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => openEdit(officer)} className="p-1.5 rounded-lg text-surface-500 hover:text-brand-400 hover:bg-brand-600/10 transition-all">
-                  <Edit2 size={13} />
-                </button>
-                <button onClick={() => deleteOfficer(officer)} disabled={deleting === officer.id} className="p-1.5 rounded-lg text-surface-500 hover:text-red-400 hover:bg-red-600/10 transition-all">
-                  {deleting === officer.id ? <Spinner size={13} /> : <Trash2 size={13} />}
-                </button>
-              </div>
-            </motion.div>
-          ))}
+
+                {officer.bio && (
+                  <div className="pl-0 sm:pl-[52px]">
+                    <button
+                      onClick={() => setExpanded(isExpanded ? null : officer.id)}
+                      className="flex items-center gap-1 text-[11px] text-surface-500 hover:text-surface-300 transition-colors"
+                    >
+                      <Quote size={11} />
+                      {isExpanded ? 'Hide bio' : 'Read bio'}
+                      <ChevronExpand size={12} className={cn('transition-transform', isExpanded && 'rotate-180')} />
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {isExpanded && (
+                        <motion.p
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="text-xs text-surface-400 leading-relaxed mt-1.5 overflow-hidden"
+                        >
+                          {officer.bio}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </motion.div>
+            )
+          })}
         </div>
       )}
 
@@ -233,7 +369,7 @@ export function OfficersManager() {
               {photoPreview ? (
                 <div className="relative">
                   <img src={photoPreview} alt="Photo" className="w-24 h-24 rounded-full object-cover border-2 border-surface-600 group-hover:border-brand-500 transition-colors" />
-                  <div className="absolute inset-0 rounded-full bg-surface-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-[#2b2419]/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Upload size={16} className="text-white" />
                   </div>
                 </div>
@@ -251,7 +387,7 @@ export function OfficersManager() {
           <div>
             <label className="label">Full Name</label>
             <input className="input" placeholder="Juan dela Cruz" {...register('name')} />
-            {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message}</p>}
           </div>
 
           <div>
@@ -260,12 +396,25 @@ export function OfficersManager() {
             <datalist id="positions-list">
               {POSITIONS.map((p) => <option key={p} value={p} />)}
             </datalist>
-            {errors.position && <p className="text-xs text-red-400 mt-1">{errors.position.message}</p>}
+            {errors.position && <p className="text-xs text-red-600 mt-1">{errors.position.message}</p>}
           </div>
 
           <div>
             <label className="label">Email (optional)</label>
             <input type="email" className="input" placeholder="juan@section.edu" {...register('email')} />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="label !mb-0">Bio (optional)</label>
+              <span className="text-[11px] text-surface-500">Shown on their card, public + portal</span>
+            </div>
+            <textarea
+              className="input h-24 resize-none"
+              placeholder="A short line about this officer — their role, goals, or a fun fact…"
+              {...register('bio')}
+            />
+            {errors.bio && <p className="text-xs text-red-600 mt-1">{errors.bio.message}</p>}
           </div>
 
           <div className="flex gap-3 pt-2">

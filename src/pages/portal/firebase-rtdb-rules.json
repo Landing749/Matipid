@@ -6,6 +6,15 @@
     "gallery":       { ".read": true,  ".write": "auth != null" },
     "officers":      { ".read": true,  ".write": "auth != null" },
     "transactions":  { ".read": true,  ".write": "auth != null" },
+    "rsvps": {
+      ".read": true,
+      "$eventId": {
+        "count": {
+          ".write": true,
+          ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() == data.val() + 1 || newData.val() == data.val() - 1)"
+        }
+      }
+    },
     "audit_records": { ".read": "auth != null", ".write": "auth != null" },
     "logs":          { ".read": "auth != null", ".write": "auth != null" },
     "users":         { ".read": "auth != null", ".write": "auth != null" },

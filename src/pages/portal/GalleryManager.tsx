@@ -245,7 +245,7 @@ export function GalleryManager() {
                 className="w-full object-cover cursor-pointer group-hover:scale-105 transition-transform duration-300"
               />
               {/* Overlay */}
-              <div className="absolute inset-0 bg-surface-950/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+              <div className="absolute inset-0 bg-[#2b2419]/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
                 <div className="flex justify-end">
                   <button
                     onClick={() => deleteImage(img)}
@@ -257,7 +257,7 @@ export function GalleryManager() {
                 </div>
                 {(img.caption || img.eventTitle) && (
                   <div>
-                    {img.eventTitle && <p className="text-xs text-brand-300 font-medium truncate">{img.eventTitle}</p>}
+                    {img.eventTitle && <p className="text-xs text-brand-700 font-medium truncate">{img.eventTitle}</p>}
                     {img.caption && <p className="text-xs text-surface-300 truncate">{img.caption}</p>}
                   </div>
                 )}
@@ -272,7 +272,7 @@ export function GalleryManager() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[100] bg-surface-950/95 backdrop-blur-xl flex items-center justify-center"
+          className="fixed inset-0 z-[100] bg-[#2b2419]/95 backdrop-blur-xl flex items-center justify-center"
           onClick={() => setLightbox(null)}
         >
           <button onClick={(e) => { e.stopPropagation(); setLightbox(null) }} className="absolute top-4 right-4 p-2 rounded-xl bg-surface-800/80 text-surface-300">
@@ -295,7 +295,7 @@ export function GalleryManager() {
             </button>
           )}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center">
-            {images[lightbox].eventTitle && <p className="text-brand-300 text-sm font-medium">{images[lightbox].eventTitle}</p>}
+            {images[lightbox].eventTitle && <p className="text-brand-700 text-sm font-medium">{images[lightbox].eventTitle}</p>}
             {images[lightbox].caption && <p className="text-surface-300 text-sm">{images[lightbox].caption}</p>}
             <p className="text-surface-600 text-xs mt-1">{lightbox + 1} / {images.length} · {formatDate(images[lightbox].uploadedAt)}</p>
           </div>

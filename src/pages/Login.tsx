@@ -78,7 +78,7 @@ export function Login() {
                 className="input"
                 {...register('email')}
               />
-              {errors.email && <p className="text-xs text-red-400 mt-1.5">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-red-600 mt-1.5">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -99,14 +99,14 @@ export function Login() {
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && <p className="text-xs text-red-400 mt-1.5">{errors.password.message}</p>}
+              {errors.password && <p className="text-xs text-red-600 mt-1.5">{errors.password.message}</p>}
             </div>
 
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -6, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
+                className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 text-sm"
               >
                 {error}
               </motion.div>

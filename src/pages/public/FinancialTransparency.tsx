@@ -60,7 +60,7 @@ export function FinancialTransparency() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-3 mb-2">
           <div className="w-8 h-8 rounded-xl bg-gold-500/20 flex items-center justify-center">
-            <Shield size={16} className="text-gold-400" />
+            <Shield size={16} className="text-gold-700" />
           </div>
           <h1 className="text-2xl font-bold text-surface-100">Financial Transparency</h1>
         </div>
@@ -84,7 +84,7 @@ export function FinancialTransparency() {
                 </>
               ) : (
                 <>
-                  <stat.icon size={16} className={`mb-2 ${stat.color === 'gold' ? 'text-gold-400' : stat.color === 'green' ? 'text-emerald-400' : stat.color === 'red' ? 'text-red-400' : 'text-brand-400'}`} />
+                  <stat.icon size={16} className={`mb-2 ${stat.color === 'gold' ? 'text-gold-700' : stat.color === 'green' ? 'text-emerald-600' : stat.color === 'red' ? 'text-red-600' : 'text-brand-600'}`} />
                   <p className="text-lg font-bold text-surface-100">{stat.value}</p>
                   <p className="text-xs text-surface-500 mt-1">{stat.label}</p>
                 </>
@@ -144,8 +144,8 @@ export function FinancialTransparency() {
                     t.type === 'income' ? 'bg-emerald-500/15' : 'bg-red-500/15'
                   }`}>
                     {t.type === 'income'
-                      ? <TrendingUp size={14} className="text-emerald-400" />
-                      : <TrendingDown size={14} className="text-red-400" />
+                      ? <TrendingUp size={14} className="text-emerald-600" />
+                      : <TrendingDown size={14} className="text-red-600" />
                     }
                   </div>
                   <div className="flex-1 min-w-0">
@@ -154,12 +154,12 @@ export function FinancialTransparency() {
                   </div>
                   <StatusBadge status={t.status} />
                   <p className={`text-sm font-semibold tabular-nums ${
-                    t.type === 'income' ? 'text-emerald-400' : 'text-red-400'
+                    t.type === 'income' ? 'text-emerald-600' : 'text-red-600'
                   }`}>
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                   </p>
                   {t.receiptUrl && (
-                    <a href={t.receiptUrl} target="_blank" rel="noreferrer" className="text-brand-400 hover:text-brand-300 text-xs">
+                    <a href={t.receiptUrl} target="_blank" rel="noreferrer" className="text-brand-600 hover:text-brand-700 text-xs">
                       Receipt
                     </a>
                   )}

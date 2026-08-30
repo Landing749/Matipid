@@ -6,6 +6,7 @@ import { dbGet, dbUpdate, dbPush, logActivity, saveVersion } from '@/lib/firebas
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { Modal, StatusBadge, PageHeader, EmptyState, Spinner } from '@/components/ui'
+import { ExportButtons } from '@/components/ExportButtons'
 
 interface Transaction {
   id: string
@@ -125,7 +126,7 @@ export function Audit() {
   const actionBtn = (tx: Transaction, action: 'APPROVE' | 'FLAG' | 'REJECT') => {
     const cfg = {
       APPROVE: { cls: 'btn-gold', icon: CheckCircle2, label: 'Approve' },
-      FLAG: { cls: 'btn-danger border-yellow-600/20 bg-yellow-600/10 text-yellow-400 hover:bg-yellow-600/20', icon: Flag, label: 'Flag' },
+      FLAG: { cls: 'btn-warning', icon: Flag, label: 'Flag' },
       REJECT: { cls: 'btn-danger', icon: XCircle, label: 'Reject' },
     }[action]
     return (
@@ -146,6 +147,7 @@ export function Audit() {
       <PageHeader
         title="Audit"
         description="Review and approve financial transactions."
+        action={<ExportButtons kind="audit" />}
       />
 
       {/* Summary row */}
@@ -155,22 +157,22 @@ export function Audit() {
           <p className="text-xs text-surface-500 mt-1 uppercase tracking-wider">Pending Review</p>
         </div>
         <div className="card flex-1">
-          <p className="text-2xl font-bold text-emerald-400">{allTx.filter((t) => t.status === 'approved').length}</p>
+          <p className="text-2xl font-bold text-emerald-600">{allTx.filter((t) => t.status === 'approved').length}</p>
           <p className="text-xs text-surface-500 mt-1 uppercase tracking-wider">Approved</p>
         </div>
         <div className="card flex-1">
-          <p className="text-2xl font-bold text-red-400">{allTx.filter((t) => t.status === 'flagged' || t.status === 'rejected').length}</p>
+          <p className="text-2xl font-bold text-red-600">{allTx.filter((t) => t.status === 'flagged' || t.status === 'rejected').length}</p>
           <p className="text-xs text-surface-500 mt-1 uppercase tracking-wider">Flagged / Rejected</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-surface-900/60 rounded-xl p-1 w-fit border border-surface-800/60">
+      <div className="flex gap-1 mb-6 bg-white/50 rounded-xl p-1 w-fit border border-white/70 shadow-clay-sm">
         {([['pending', 'Pending'] , ['history', 'Audit History']] as const).map(([key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === key ? 'bg-brand-600/20 text-brand-300' : 'text-surface-400 hover:text-surface-200'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === key ? 'bg-white text-brand-700 shadow-clay-sm' : 'text-surface-400 hover:text-surface-200'}`}
           >
             {label}
             {key === 'pending' && pending.length > 0 && (
@@ -199,12 +201,12 @@ export function Audit() {
                     <p className="text-xs text-surface-500 mt-1">{tx.category} · {tx.createdByEmail} · {formatDate(tx.createdAt)}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className={`text-lg font-bold ${tx.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <p className={`text-lg font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}>
                       {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
                     </p>
                     <button
                       onClick={() => { setViewTx(tx); setComment('') }}
-                      className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 mt-1 ml-auto"
+                      className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1 mt-1 ml-auto"
                     >
                       <Eye size={12} /> Details
                     </button>
@@ -248,15 +250,15 @@ export function Audit() {
                     record.action === 'APPROVE' ? 'bg-emerald-500/15' :
                     record.action === 'FLAG' ? 'bg-yellow-500/15' : 'bg-red-500/15'
                   }`}>
-                    {record.action === 'APPROVE' ? <CheckCircle2 size={14} className="text-emerald-400" /> :
-                     record.action === 'FLAG' ? <Flag size={14} className="text-yellow-400" /> :
-                     <XCircle size={14} className="text-red-400" />}
+                    {record.action === 'APPROVE' ? <CheckCircle2 size={14} className="text-emerald-600" /> :
+                     record.action === 'FLAG' ? <Flag size={14} className="text-yellow-600" /> :
+                     <XCircle size={14} className="text-red-600" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-surface-100">
                       <span className="font-medium">{record.txTitle}</span>
                       <span className="text-surface-400"> was </span>
-                      <span className={record.action === 'APPROVE' ? 'text-emerald-400' : record.action === 'FLAG' ? 'text-yellow-400' : 'text-red-400'}>
+                      <span className={record.action === 'APPROVE' ? 'text-emerald-600' : record.action === 'FLAG' ? 'text-yellow-600' : 'text-red-600'}>
                         {record.action.toLowerCase()}d
                       </span>
                     </p>
@@ -285,7 +287,7 @@ export function Audit() {
             </div>
             <p className="text-lg font-semibold text-surface-100">{viewTx.title}</p>
             {viewTx.description && <p className="text-surface-400 text-sm">{viewTx.description}</p>}
-            <p className={`text-2xl font-bold ${viewTx.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
+            <p className={`text-2xl font-bold ${viewTx.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}>
               {viewTx.type === 'income' ? '+' : '-'}{formatCurrency(viewTx.amount)}
             </p>
             <div className="grid grid-cols-2 gap-3 text-sm">

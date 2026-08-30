@@ -5,7 +5,7 @@ import {
   LayoutDashboard, DollarSign, ShieldCheck, ScrollText, History,
   HardDrive, Activity, BarChart2, Settings, Users, Database,
   Search, ChevronLeft, LogOut, ExternalLink,
-  Megaphone, Calendar, Image, Target, BookUser, CalendarDays, Clock
+  Megaphone, Calendar, Image, Target, BookUser, CalendarDays, Clock, Lightbulb
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
@@ -41,6 +41,7 @@ const navGroups: NavGroup[] = [
     items: [
       { icon: Users, label: 'Officers', to: '/portal/officers' },
       { icon: BookUser, label: 'Members', to: '/portal/members' },
+      { icon: Lightbulb, label: 'Suggestions', to: '/portal/suggestions' },
     ],
   },
   {
@@ -83,12 +84,15 @@ export function Sidebar() {
     <motion.aside
       animate={{ width: collapsed ? 72 : 256 }}
       transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-      className="relative flex flex-col h-screen border-r border-surface-800/60 overflow-hidden flex-shrink-0 z-30"
-      style={{ background: 'linear-gradient(180deg, #1a1a22 0%, #0f0f14 100%)' }}
+      className="relative flex flex-col h-screen border-r border-white/60 overflow-hidden flex-shrink-0 z-30"
+      style={{
+        background: '#f2ead9',
+        boxShadow: '4px 0 24px rgba(150,132,103,0.18)',
+      }}
     >
-      {/* Brand aurora — top glow */}
-      <div className="pointer-events-none absolute top-0 left-0 right-0 h-40 opacity-60"
-        style={{ background: 'radial-gradient(ellipse 120% 80% at 50% 0%, rgba(124,26,255,0.18) 0%, transparent 70%)' }} />
+      {/* Brand glow — soft clay tint, matches the palette instead of a neon aurora */}
+      <div className="pointer-events-none absolute top-0 left-0 right-0 h-40 opacity-70"
+        style={{ background: 'radial-gradient(ellipse 120% 80% at 50% 0%, rgba(141,109,209,0.14) 0%, transparent 70%)' }} />
 
       {/* Logo */}
       <div className="relative flex items-center gap-3 px-4 h-[60px] border-b border-surface-800/50 flex-shrink-0">
@@ -124,9 +128,9 @@ export function Sidebar() {
           >
             <NavLink
               to="/portal/search"
-              className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-surface-800/40 border border-surface-700/30 text-surface-500 text-sm hover:bg-surface-800/70 hover:border-brand-600/30 hover:text-surface-300 transition-all group"
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-white/50 border border-white/70 text-surface-500 text-sm hover:bg-white/80 hover:border-brand-400/40 hover:text-surface-300 transition-all group shadow-clay-sm"
             >
-              <Search className="w-3.5 h-3.5 group-hover:text-brand-400 transition-colors flex-shrink-0" />
+              <Search className="w-3.5 h-3.5 group-hover:text-brand-600 transition-colors flex-shrink-0" />
               <span className="flex-1 text-left text-xs">Search…</span>
               <kbd className="text-[10px] bg-surface-800 border border-surface-700/60 px-1.5 py-0.5 rounded-md text-surface-600 font-mono">⌘K</kbd>
             </NavLink>
@@ -171,7 +175,7 @@ export function Sidebar() {
                       cn(
                         'relative flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 group select-none',
                         isActive
-                          ? 'text-brand-200'
+                          ? 'text-brand-700 font-semibold'
                           : 'text-surface-400 hover:bg-surface-800/50 hover:text-surface-100 active:scale-[0.98]',
                         collapsed && 'justify-center px-0 py-2.5'
                       )
@@ -185,8 +189,8 @@ export function Sidebar() {
                             layoutId="sidebar-pill"
                             className="absolute inset-0 rounded-xl"
                             style={{
-                              background: 'linear-gradient(90deg, rgba(124,26,255,0.22) 0%, rgba(124,26,255,0.06) 60%, transparent 100%)',
-                              border: '1px solid rgba(124,26,255,0.2)',
+                              background: 'linear-gradient(90deg, rgba(116,88,189,0.16) 0%, rgba(116,88,189,0.04) 60%, transparent 100%)',
+                              border: '1px solid rgba(116,88,189,0.18)',
                             }}
                             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                           />
@@ -196,7 +200,7 @@ export function Sidebar() {
                           <motion.span
                             layoutId="sidebar-bar"
                             className="absolute left-0 top-[5px] bottom-[5px] w-[3px] rounded-full"
-                            style={{ background: 'linear-gradient(180deg, #bf99ff 0%, #7c1aff 100%)' }}
+                            style={{ background: 'linear-gradient(180deg, #a688dd 0%, #5f479c 100%)' }}
                             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                           />
                         )}
@@ -204,7 +208,7 @@ export function Sidebar() {
                           size={15}
                           className={cn(
                             'flex-shrink-0 relative z-10 transition-all',
-                            isActive ? 'text-brand-300' : 'text-surface-500 group-hover:text-surface-300'
+                            isActive ? 'text-brand-600' : 'text-surface-500 group-hover:text-surface-300'
                           )}
                         />
                         <AnimatePresence>
@@ -247,7 +251,7 @@ export function Sidebar() {
         )}>
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-white shadow-md"
-            style={{ background: 'linear-gradient(135deg, #8b3dff 0%, #5a0cc4 100%)', boxShadow: '0 0 0 1px rgba(139,61,255,0.4)' }}
+            style={{ background: 'linear-gradient(135deg, #a688dd 0%, #5f479c 100%)', boxShadow: '0 0 0 1px rgba(95,71,156,0.35)' }}
           >
             {initials}
           </div>
@@ -259,7 +263,7 @@ export function Sidebar() {
               </div>
               <button
                 onClick={handleSignOut}
-                className="p-1 text-surface-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                className="p-1 text-surface-600 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-all"
               >
                 <LogOut size={12} />
               </button>
@@ -273,7 +277,7 @@ export function Sidebar() {
         onClick={() => setCollapsed((v) => !v)}
         whileHover={{ scale: 1.12 }}
         whileTap={{ scale: 0.9 }}
-        className="absolute top-[18px] -right-3 z-50 w-6 h-6 rounded-full bg-surface-800 border border-surface-700/80 flex items-center justify-center text-surface-400 hover:text-brand-300 hover:border-brand-600/50 transition-all shadow-lg"
+        className="absolute top-[18px] -right-3 z-50 w-6 h-6 rounded-full bg-[#faf5ea] border border-white/70 flex items-center justify-center text-surface-400 hover:text-brand-600 hover:border-brand-400/50 transition-all shadow-clay-sm"
       >
         <motion.span animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.22 }}>
           <ChevronLeft size={11} />

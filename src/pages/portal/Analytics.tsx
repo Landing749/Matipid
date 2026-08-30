@@ -9,7 +9,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
 
-const COLORS = ['#8b3dff', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#ec4899']
+const COLORS = ['#7458bd', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#ec4899']
 
 const tooltipStyle = {
   contentStyle: { background: '#18181b', border: '1px solid #27272a', borderRadius: '12px', fontSize: 12 },
@@ -142,15 +142,15 @@ export function Analytics() {
             <AreaChart data={monthlyFinance}>
               <defs>
                 <linearGradient id="gBal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8b3dff" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#8b3dff" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#7458bd" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#7458bd" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#71717a' }} />
               <YAxis tick={{ fontSize: 11, fill: '#71717a' }} />
               <Tooltip {...tooltipStyle} />
-              <Area type="monotone" dataKey="balance" stroke="#8b3dff" fill="url(#gBal)" strokeWidth={2} name="Balance" />
+              <Area type="monotone" dataKey="balance" stroke="#7458bd" fill="url(#gBal)" strokeWidth={2} name="Balance" />
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -219,7 +219,7 @@ export function Analytics() {
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#71717a' }} />
               <YAxis tick={{ fontSize: 11, fill: '#71717a' }} allowDecimals={false} />
               <Tooltip {...tooltipStyle} />
-              <Bar dataKey="count" fill="#8b3dff" radius={[4, 4, 0, 0]} name="Announcements" />
+              <Bar dataKey="count" fill="#7458bd" radius={[4, 4, 0, 0]} name="Announcements" />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

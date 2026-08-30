@@ -16,10 +16,10 @@ interface SearchResult {
 }
 
 const TYPE_CONFIG = {
-  announcement: { icon: Megaphone, color: 'text-brand-400 bg-brand-600/10', label: 'Announcement' },
-  event: { icon: Calendar, color: 'text-gold-400 bg-gold-500/10', label: 'Event' },
-  transaction: { icon: DollarSign, color: 'text-emerald-400 bg-emerald-500/10', label: 'Transaction' },
-  gallery: { icon: Image, color: 'text-brand-400 bg-brand-600/10', label: 'Gallery' },
+  announcement: { icon: Megaphone, color: 'text-brand-600 bg-brand-600/10', label: 'Announcement' },
+  event: { icon: Calendar, color: 'text-gold-700 bg-gold-500/10', label: 'Event' },
+  transaction: { icon: DollarSign, color: 'text-emerald-600 bg-emerald-500/10', label: 'Transaction' },
+  gallery: { icon: Image, color: 'text-brand-600 bg-brand-600/10', label: 'Gallery' },
   log: { icon: ScrollText, color: 'text-surface-400 bg-surface-800/50', label: 'Log' },
 }
 
@@ -82,7 +82,7 @@ export function SearchPage() {
     // Events
     Object.entries(allData.events).forEach(([id, e]) => {
       if (e.title?.toLowerCase().includes(q) || e.description?.toLowerCase().includes(q) || e.location?.toLowerCase().includes(q)) {
-        found.push({ id, type: 'event', title: e.title, subtitle: e.description?.slice(0, 80), meta: formatDate(e.date), to: '/events' })
+        found.push({ id, type: 'event', title: e.title, subtitle: e.description?.slice(0, 80), meta: formatDate(e.date), to: `/events/${id}` })
       }
     })
 
@@ -184,11 +184,11 @@ export function SearchPage() {
                               <cfg.icon size={14} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-surface-100 truncate group-hover:text-brand-300 transition-colors">{r.title}</p>
+                              <p className="text-sm font-medium text-surface-100 truncate group-hover:text-brand-700 transition-colors">{r.title}</p>
                               {r.subtitle && <p className="text-xs text-surface-500 truncate">{r.subtitle}</p>}
                             </div>
                             {r.meta && <p className="text-xs text-surface-600 flex-shrink-0">{r.meta}</p>}
-                            <ArrowRight size={12} className="text-surface-600 group-hover:text-brand-400 transition-colors flex-shrink-0" />
+                            <ArrowRight size={12} className="text-surface-600 group-hover:text-brand-600 transition-colors flex-shrink-0" />
                           </Link>
                         ))}
                       </div>

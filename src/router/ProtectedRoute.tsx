@@ -16,7 +16,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
       <div className="min-h-screen flex items-center justify-center bg-surface-950">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-brand-600/20 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 text-brand-400 animate-spin" />
+            <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
           </div>
           <p className="text-surface-400 text-sm">Loading portal…</p>
         </div>

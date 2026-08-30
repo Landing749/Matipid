@@ -176,9 +176,9 @@ export function NotificationsPanel() {
   }
 
   const typeIcon: Record<string, React.ReactNode> = {
-    pending_audit: <ShieldAlert size={14} className="text-yellow-400" />,
-    low_balance: <AlertTriangle size={14} className="text-red-400" />,
-    backup_overdue: <HardDrive size={14} className="text-brand-400" />,
+    pending_audit: <ShieldAlert size={14} className="text-yellow-600" />,
+    low_balance: <AlertTriangle size={14} className="text-red-600" />,
+    backup_overdue: <HardDrive size={14} className="text-brand-600" />,
     system: <Bell size={14} className="text-surface-400" />,
   }
 
@@ -216,14 +216,14 @@ export function NotificationsPanel() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-80 bg-surface-900 border border-surface-800 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden z-50"
+            className="absolute right-0 top-full mt-2 w-80 clay-panel overflow-hidden z-50"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-surface-800">
               <div className="flex items-center gap-2">
                 <Bell size={14} className="text-surface-400" />
                 <span className="text-sm font-semibold text-surface-200">Notifications</span>
                 {unread > 0 && (
-                  <span className="text-[10px] bg-brand-600/20 text-brand-300 px-1.5 py-0.5 rounded-full font-medium">
+                  <span className="text-[10px] bg-brand-100 text-brand-700 px-1.5 py-0.5 rounded-full font-medium">
                     {unread} new
                   </span>
                 )}

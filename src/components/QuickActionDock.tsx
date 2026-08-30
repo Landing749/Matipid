@@ -100,7 +100,7 @@ export function QuickActionDock() {
                 exit="closed"
                 className="flex items-center gap-2"
               >
-                <span className="bg-surface-900/90 backdrop-blur-sm border border-surface-700/60 text-surface-200 text-xs px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                <span className="chip-dark">
                   {action.label}
                 </span>
                 <button
@@ -123,7 +123,7 @@ export function QuickActionDock() {
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.92 }}
         onClick={() => setOpen((v) => !v)}
-        className="w-13 h-13 w-14 h-14 rounded-full bg-brand-600 hover:bg-brand-500 text-white shadow-xl shadow-brand-600/30 flex items-center justify-center transition-colors ring-2 ring-brand-500/40"
+        className="w-14 h-14 rounded-full bg-brand-600 hover:bg-brand-500 text-white shadow-xl shadow-brand-600/30 flex items-center justify-center transition-colors ring-2 ring-brand-500/40"
       >
         <motion.span animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.2 }}>
           <Plus size={22} />

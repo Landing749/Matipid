@@ -106,13 +106,13 @@ export function VersionHistory() {
       />
 
       {/* Resource selector */}
-      <div className="flex gap-1 mb-6 bg-surface-900/60 rounded-xl p-1 w-fit border border-surface-800/60">
+      <div className="flex gap-1 mb-6 bg-white/50 rounded-xl p-1 w-fit border border-white/70 shadow-clay-sm">
         {RESOURCES.map((r) => (
           <button
             key={r.key}
             onClick={() => setResource(r.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              resource === r.key ? 'bg-brand-600/20 text-brand-300' : 'text-surface-400 hover:text-surface-200'
+              resource === r.key ? 'bg-brand-100 text-brand-700' : 'text-surface-400 hover:text-surface-200'
             }`}
           >
             {r.label}
@@ -159,7 +159,7 @@ export function VersionHistory() {
                     <div key={ver.id} className="flex items-center gap-4 px-5 py-3 hover:bg-surface-800/20">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs text-brand-400">v{group.versions.length - i}</span>
+                          <span className="font-mono text-xs text-brand-600">v{group.versions.length - i}</span>
                           {i === 0 && <span className="badge-green text-xs">Current</span>}
                           <span className="text-xs text-surface-400">{formatDateTime(ver.savedAt)}</span>
                         </div>

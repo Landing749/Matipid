@@ -98,14 +98,14 @@ export function CommandPalette() {
           transition={{ duration: 0.15 }}
           className="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh]"
         >
-          <div className="absolute inset-0 bg-surface-950/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <div className="absolute inset-0 scrim backdrop-blur-sm" onClick={() => setOpen(false)} />
 
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="relative w-full max-w-lg mx-4 bg-surface-900 border border-surface-700/60 rounded-2xl shadow-2xl shadow-surface-950/80 overflow-hidden"
+            className="relative w-full max-w-lg mx-4 clay-panel overflow-hidden"
           >
             {/* Search input */}
             <div className="flex items-center gap-3 px-4 border-b border-surface-800/60">
@@ -134,13 +134,13 @@ export function CommandPalette() {
                     onClick={() => execute(cmd)}
                     onMouseEnter={() => setSelected(i)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                      selected === i ? 'bg-brand-600/15 text-brand-300' : 'text-surface-300 hover:bg-surface-800/50'
+                      selected === i ? 'bg-brand-100 text-brand-700' : 'text-surface-300 hover:bg-surface-800/50'
                     }`}
                   >
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      selected === i ? 'bg-brand-600/20' : 'bg-surface-800'
+                      selected === i ? 'bg-brand-200' : 'bg-surface-800'
                     }`}>
-                      <cmd.icon size={14} className={selected === i ? 'text-brand-400' : 'text-surface-400'} />
+                      <cmd.icon size={14} className={selected === i ? 'text-brand-700' : 'text-surface-400'} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{cmd.label}</p>

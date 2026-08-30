@@ -171,7 +171,7 @@ export function Backup() {
         <div className="card space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-brand-600/15 flex items-center justify-center">
-              <Download size={18} className="text-brand-400" />
+              <Download size={18} className="text-brand-600" />
             </div>
             <div>
               <p className="text-sm font-semibold text-surface-100">Create Backup</p>
@@ -196,14 +196,14 @@ export function Backup() {
         <div className="card space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gold-500/15 flex items-center justify-center">
-              <Upload size={18} className="text-gold-400" />
+              <Upload size={18} className="text-gold-700" />
             </div>
             <div>
               <p className="text-sm font-semibold text-surface-100">Restore Backup</p>
               <p className="text-xs text-surface-500">Import a JSON backup file</p>
             </div>
           </div>
-          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-300">
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700">
             ⚠️ Restoring will overwrite all current data. This cannot be undone without another backup.
           </div>
           <button
@@ -240,7 +240,7 @@ export function Backup() {
               <div key={backup.id} className="flex items-center gap-4 px-5 py-4 hover:bg-surface-800/20 transition-colors">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${i === 0 ? 'bg-emerald-500/15' : 'bg-surface-800'}`}>
                   {i === 0
-                    ? <CheckCircle2 size={16} className="text-emerald-400" />
+                    ? <CheckCircle2 size={16} className="text-emerald-600" />
                     : <HardDrive size={16} className="text-surface-500" />
                   }
                 </div>
@@ -271,7 +271,7 @@ export function Backup() {
       >
         {restorePreview && (
           <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-300">
+            <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
               <p className="font-semibold mb-1">⚠️ Destructive Operation</p>
               <p>This will overwrite ALL current data with the contents of this backup. Create a new backup first if you want to preserve the current state.</p>
             </div>
@@ -301,7 +301,7 @@ export function Backup() {
 
             <div className="flex gap-3">
               <button onClick={() => setRestorePreview(null)} className="btn-secondary flex-1">Cancel</button>
-              <button onClick={doRestore} disabled={restoring} className="btn-danger flex-1 border-red-600/40 bg-red-600/15 text-red-300 hover:bg-red-600/25">
+              <button onClick={doRestore} disabled={restoring} className="btn-danger flex-1">
                 {restoring ? <Spinner size={16} /> : <><AlertCircle size={14} /> Restore Anyway</>}
               </button>
             </div>

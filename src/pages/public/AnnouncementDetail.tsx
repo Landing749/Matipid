@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Megaphone, Pin, ArrowLeft, Calendar, User, Share2, Check, Link2 } from 'lucide-react'
+import { Megaphone, Pin, ArrowLeft, ArrowRight, Calendar, User, Check, Link2 } from 'lucide-react'
 import { dbGet } from '@/lib/firebase'
 import { formatDate } from '@/lib/utils'
 import { Skeleton, EmptyState } from '@/components/ui'
+import { Reactions } from '@/components/Reactions'
+import { Comments } from '@/components/Comments'
 
 interface Announcement {
   id: string
@@ -14,6 +16,24 @@ interface Announcement {
   author: string
   createdAt: number
   pinned?: boolean
+  category?: string
+  status?: 'draft' | 'published'
+  publishAt?: number
+}
+
+const CATEGORY_BADGE: Record<string, string> = {
+  General: 'badge-gray',
+  Event: 'badge-gold',
+  Meeting: 'badge-purple',
+  Urgent: 'badge-red',
+  Achievement: 'badge-green',
+  Reminder: 'badge-yellow',
+}
+
+function isPubliclyVisible(a: Announcement) {
+  if (a.status === 'draft') return false
+  if (a.publishAt && a.publishAt > Date.now()) return false
+  return true
 }
 
 export function AnnouncementDetail() {
@@ -21,11 +41,31 @@ export function AnnouncementDetail() {
   const [item, setItem] = useState<Announcement | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [prev, setPrev] = useState<Announcement | null>(null)
+  const [next, setNext] = useState<Announcement | null>(null)
 
   useEffect(() => {
     if (!id) return
-    dbGet<Announcement>(`announcements/${id}`)
-      .then((data) => setItem(data ?? null))
+    Promise.all([
+      dbGet<Announcement>(`announcements/${id}`),
+      dbGet<Record<string, Announcement>>('announcements'),
+    ])
+      .then(([data, all]) => {
+        const hidden = data && (data.status === 'draft' || (data.publishAt && data.publishAt > Date.now()))
+        setItem(hidden ? null : (data ?? null))
+
+        if (!hidden && all) {
+          const ordered = Object.entries(all)
+            .map(([aid, v]) => ({ ...v, id: aid }))
+            .filter(isPubliclyVisible)
+            .sort((a, b) => b.createdAt - a.createdAt)
+          const idx = ordered.findIndex((a) => a.id === id)
+          if (idx !== -1) {
+            setNext(idx > 0 ? ordered[idx - 1] : null) // newer
+            setPrev(idx < ordered.length - 1 ? ordered[idx + 1] : null) // older
+          }
+        }
+      })
       .finally(() => setLoading(false))
   }, [id])
 
@@ -114,12 +154,15 @@ export function AnnouncementDetail() {
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-lg bg-brand-600/20 flex items-center justify-center">
-                  <Megaphone size={14} className="text-brand-400" />
+                  <Megaphone size={14} className="text-brand-600" />
                 </div>
                 {item.pinned && (
                   <span className="badge-gold flex items-center gap-1 text-xs">
                     <Pin size={10} /> Pinned
                   </span>
+                )}
+                {item.category && (
+                  <span className={`${CATEGORY_BADGE[item.category] ?? 'badge-gray'} text-xs`}>{item.category}</span>
                 )}
               </div>
 
@@ -181,6 +224,40 @@ export function AnnouncementDetail() {
             <div className="text-surface-300 text-base leading-relaxed whitespace-pre-wrap">
               {item.content}
             </div>
+
+            <div className="mt-6">
+              <Reactions resourceType="announcement" resourceId={item.id} />
+            </div>
+
+            {/* Prev / Next */}
+            {(prev || next) && (
+              <div className="mt-10 pt-6 border-t border-surface-800 grid grid-cols-2 gap-3">
+                {prev ? (
+                  <Link
+                    to={`/announcements/${prev.id}`}
+                    className="card-hover flex flex-col items-start gap-1 min-w-0"
+                  >
+                    <span className="flex items-center gap-1.5 text-xs text-surface-500">
+                      <ArrowLeft size={12} /> Older
+                    </span>
+                    <span className="text-sm font-medium text-surface-200 truncate w-full">{prev.title}</span>
+                  </Link>
+                ) : <div />}
+                {next ? (
+                  <Link
+                    to={`/announcements/${next.id}`}
+                    className="card-hover flex flex-col items-end text-right gap-1 min-w-0"
+                  >
+                    <span className="flex items-center gap-1.5 text-xs text-surface-500">
+                      Newer <ArrowRight size={12} />
+                    </span>
+                    <span className="text-sm font-medium text-surface-200 truncate w-full">{next.title}</span>
+                  </Link>
+                ) : <div />}
+              </div>
+            )}
+
+            <Comments resourceType="announcement" resourceId={item.id} />
           </article>
         )}
       </motion.div>

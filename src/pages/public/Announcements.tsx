@@ -14,6 +14,24 @@ interface Announcement {
   author: string
   createdAt: number
   pinned?: boolean
+  category?: string
+  status?: 'draft' | 'published'
+  publishAt?: number
+}
+
+const CATEGORY_BADGE: Record<string, string> = {
+  General: 'badge-gray',
+  Event: 'badge-gold',
+  Meeting: 'badge-purple',
+  Urgent: 'badge-red',
+  Achievement: 'badge-green',
+  Reminder: 'badge-yellow',
+}
+
+function isPubliclyVisible(a: Announcement) {
+  if (a.status === 'draft') return false
+  if (a.publishAt && a.publishAt > Date.now()) return false
+  return true
 }
 
 export function Announcements() {
@@ -53,6 +71,7 @@ export function Announcements() {
       if (data) {
         const list = Object.entries(data)
           .map(([id, v]) => ({ ...v, id }))
+          .filter(isPubliclyVisible)
           .sort((a, b) => {
             if (a.pinned && !b.pinned) return -1
             if (!a.pinned && b.pinned) return 1
@@ -74,7 +93,7 @@ export function Announcements() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-3 mb-2">
           <div className="w-8 h-8 rounded-xl bg-brand-600/20 flex items-center justify-center">
-            <Megaphone size={16} className="text-brand-400" />
+            <Megaphone size={16} className="text-brand-600" />
           </div>
           <h1 className="text-2xl font-bold text-surface-100">Announcements</h1>
         </div>
@@ -137,7 +156,10 @@ export function Announcements() {
                           <Pin size={10} /> Pinned
                         </span>
                       )}
-                      <h2 className="font-semibold text-surface-100 leading-snug group-hover:text-brand-300 transition-colors">
+                      {item.category && (
+                        <span className={`${CATEGORY_BADGE[item.category] ?? 'badge-gray'} flex-shrink-0`}>{item.category}</span>
+                      )}
+                      <h2 className="font-semibold text-surface-100 leading-snug group-hover:text-brand-700 transition-colors">
                         {item.title}
                       </h2>
                     </div>
@@ -160,7 +182,7 @@ export function Announcements() {
                             <><Link2 size={11} /><span>Share</span></>
                           )}
                         </button>
-                        <span className="flex items-center gap-1 text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="flex items-center gap-1 text-brand-600 opacity-0 group-hover:opacity-100 transition-opacity">
                           Read more <ArrowRight size={11} />
                         </span>
                       </span>

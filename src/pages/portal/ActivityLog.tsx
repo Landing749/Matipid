@@ -20,17 +20,17 @@ interface LogEntry {
 }
 
 const ACTION_COLORS: Record<string, string> = {
-  LOGIN: 'text-brand-400 bg-brand-600/10',
+  LOGIN: 'text-brand-600 bg-brand-600/10',
   LOGOUT: 'text-surface-400 bg-surface-800/50',
-  CREATE: 'text-emerald-400 bg-emerald-600/10',
-  UPDATE: 'text-gold-400 bg-gold-500/10',
-  DELETE: 'text-red-400 bg-red-600/10',
-  APPROVE: 'text-emerald-400 bg-emerald-600/10',
-  REJECT: 'text-red-400 bg-red-600/10',
-  FLAG: 'text-yellow-400 bg-yellow-600/10',
-  BACKUP: 'text-brand-400 bg-brand-600/10',
+  CREATE: 'text-emerald-600 bg-emerald-600/10',
+  UPDATE: 'text-gold-700 bg-gold-500/10',
+  DELETE: 'text-red-600 bg-red-600/10',
+  APPROVE: 'text-emerald-600 bg-emerald-600/10',
+  REJECT: 'text-red-600 bg-red-600/10',
+  FLAG: 'text-yellow-600 bg-yellow-600/10',
+  BACKUP: 'text-brand-600 bg-brand-600/10',
   ROLLBACK: 'text-orange-400 bg-orange-600/10',
-  RESTORE: 'text-brand-400 bg-brand-600/10',
+  RESTORE: 'text-brand-600 bg-brand-600/10',
 }
 
 function getActionColor(action: string) {
