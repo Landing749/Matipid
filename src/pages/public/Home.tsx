@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, DollarSign, Calendar, Image, Megaphone, Shield, Users, Sparkles, X, ImagePlus, Heart } from 'lucide-react'
+import { ArrowRight, DollarSign, Calendar, Image, Megaphone, Shield, Users, Sparkles, ImagePlus, Heart } from 'lucide-react'
 import { isSameDay } from 'date-fns'
 import { dbGet } from '@/lib/firebase'
 import { formatDate, cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui'
 import { Logo } from '@/components/Logo'
 import { EventCountdown } from '@/components/EventCountdown'
+import { EventBanner } from '@/components/EventBanner'
 import { AnthemEmbed } from '@/components/AnthemEmbed'
 
 interface Settings {
@@ -208,9 +209,7 @@ export function Home() {
     }).finally(() => setLoading(false))
   }, [])
 
-  function dismissBanner(e: React.MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation()
+  function dismissBanner() {
     if (featuredEvent) {
       try {
         localStorage.setItem(EVENT_BANNER_DISMISS_KEY, featuredEvent.id)
@@ -223,58 +222,7 @@ export function Home() {
 
   return (
     <div className="relative">
-      {/* Event banner */}
-      <AnimatePresence initial={false}>
-        {featuredEvent && !bannerDismissed && (
-          <motion.div
-            key={featuredEvent.id}
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden relative"
-          >
-            <Link
-              to={`/events/${featuredEvent.id}`}
-              className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 pl-4 pr-10 py-2.5 text-sm text-center bg-gradient-to-r from-brand-700 to-brand-600 text-white hover:from-brand-600 hover:to-brand-500 transition-all"
-            >
-              {featuredEvent.happeningNow ? (
-                <span className="flex items-center gap-1.5 font-semibold flex-shrink-0">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-                  </span>
-                  Happening Today
-                </span>
-              ) : (
-                <span className="font-semibold flex-shrink-0">Upcoming Event</span>
-              )}
-              <span className="opacity-70">·</span>
-              <span className="font-medium truncate max-w-[240px] sm:max-w-none">{featuredEvent.title}</span>
-              {!featuredEvent.happeningNow && (
-                <>
-                  <span className="opacity-70 hidden sm:inline">·</span>
-                  <span className="opacity-90 hidden sm:inline">{formatDate(featuredEvent.date)}</span>
-                </>
-              )}
-              {featuredEvent.location && (
-                <>
-                  <span className="opacity-70 hidden sm:inline">·</span>
-                  <span className="opacity-90 hidden sm:inline">{featuredEvent.location}</span>
-                </>
-              )}
-              <ArrowRight size={14} className="flex-shrink-0" />
-            </Link>
-            <button
-              onClick={dismissBanner}
-              title="Dismiss"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/15 transition-colors"
-            >
-              <X size={14} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <EventBanner event={featuredEvent} dismissed={bannerDismissed} onDismiss={dismissBanner} />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
