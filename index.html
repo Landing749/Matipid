@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -9,9 +9,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="MATIPID Portal — Section Management & Transparency Platform" />
     <title>MATIPID Portal</title>
+
+    <!-- Open Graph / Twitter — site-wide defaults for any page that doesn't
+         override them (see scripts/prerender-og.mjs, which generates a
+         static announcements/<id>/ and events/<id>/ index.html with
+         per-item title/description/image so shared links preview the
+         actual content instead of these generic ones).
+         %VITE_SITE_URL% is substituted at build time by Vite's built-in
+         HTML env replacement — set VITE_SITE_URL in the deploy workflow to
+         the full deployed origin + base, e.g. https://user.github.io/matipid
+         (no trailing slash). Locally/undefined, it resolves to an empty
+         string, which still produces a valid (if relative) page. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MATIPID Portal" />
+    <meta property="og:title" content="MATIPID Portal — Section Management & Transparency Platform" />
+    <meta property="og:description" content="Section Management & Transparency Platform for Grade 8 Section MATIPID — announcements, events, and financial transparency." />
+    <meta property="og:url" content="%VITE_SITE_URL%/" />
+    <meta property="og:image" content="%VITE_SITE_URL%/logo-512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MATIPID Portal — Section Management & Transparency Platform" />
+    <meta name="twitter:description" content="Section Management & Transparency Platform for Grade 8 Section MATIPID — announcements, events, and financial transparency." />
+    <meta name="twitter:image" content="%VITE_SITE_URL%/logo-512.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script>
+      // Set the theme class before first paint so reloads don't flash the
+      // wrong mode while React mounts and ThemeContext's effect catches up.
+      (function () {
+        try {
+          var stored = localStorage.getItem('matipid-theme');
+          var theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
+          document.documentElement.classList.toggle('dark', theme === 'dark');
+          document.documentElement.classList.toggle('light', theme === 'light');
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    <script>
+      // Companion to public/404.html: unpack a deep link GitHub Pages
+      // redirected here (?p=/real/path) back into a normal URL via
+      // history.replaceState, before React Router mounts and reads
+      // location. No-op on a plain visit (no ?p= param).
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var redirectedPath = params.get('p');
+        if (redirectedPath === null) return;
+        var restoredQuery = params.get('q');
+        var newUrl =
+          window.location.pathname.replace(/\/$/, '') +
+          redirectedPath.replace(/~and~/g, '&') +
+          (restoredQuery ? '?' + restoredQuery.replace(/~and~/g, '&') : '') +
+          window.location.hash;
+        window.history.replaceState(null, '', newUrl);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

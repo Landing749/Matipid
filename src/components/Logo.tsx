@@ -42,9 +42,9 @@ export function Logo({ size = 32, className, glow = true, animated = true, round
       style={{
         width: size,
         height: size,
-        background: '#faf5ea',
+        background: 'var(--clay-fill)',
         boxShadow: glow
-          ? '4px 4px 10px rgba(150,132,103,0.35), -4px -4px 10px rgba(255,255,255,0.9)'
+          ? '4px 4px 10px rgba(var(--clay-edge-dark-rgb),0.35), -4px -4px 10px rgba(var(--clay-edge-light-rgb),0.9)'
           : undefined,
       }}
     >
@@ -52,7 +52,7 @@ export function Logo({ size = 32, className, glow = true, animated = true, round
         src={src}
         alt="Section logo"
         className={cn('relative w-full h-full object-contain', rounded)}
-        style={{ boxShadow: 'inset 1px 1px 3px rgba(150,132,103,0.3)' }}
+        style={{ boxShadow: 'inset 1px 1px 3px rgba(var(--clay-edge-dark-rgb),0.3)' }}
       />
     </Wrapper>
   )

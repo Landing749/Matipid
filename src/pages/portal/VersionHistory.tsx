@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { History, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
@@ -39,7 +39,7 @@ export function VersionHistory() {
   const [rollingBack, setRollingBack] = useState(false)
   const [preview, setPreview] = useState<unknown>(null)
 
-  async function loadVersions() {
+  const loadVersions = useCallback(async () => {
     setLoading(true)
     try {
       const data = await dbGet<Record<string, Record<string, VersionEntry>>>(`versions/${resource}`)
@@ -57,9 +57,14 @@ export function VersionHistory() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [resource])
 
-  useEffect(() => { loadVersions() }, [resource])
+  // Standard "start loading, fetch, stop loading" pattern — the compiler's
+  // set-state-in-effect rule flags the synchronous setLoading(true) inside
+  // loadVersions, but it's not part of a dependency that re-triggers this
+  // effect, so it can't cascade.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { loadVersions() }, [loadVersions])
 
   async function doRollback() {
     if (!rollbackTarget || !user || !profile) return
@@ -91,7 +96,7 @@ export function VersionHistory() {
       toast.success('Rollback successful. Previous version restored.')
       setRollbackTarget(null)
       loadVersions()
-    } catch (e) {
+    } catch {
       toast.error('Rollback failed. Try again.')
     } finally {
       setRollingBack(false)
@@ -106,7 +111,7 @@ export function VersionHistory() {
       />
 
       {/* Resource selector */}
-      <div className="flex gap-1 mb-6 bg-white/50 rounded-xl p-1 w-fit border border-white/70 shadow-clay-sm">
+      <div className="flex gap-1 mb-6 bg-[rgba(var(--surface-overlay-rgb),0.5)] rounded-xl p-1 w-fit border border-[rgba(var(--surface-overlay-rgb),0.7)] shadow-clay-sm">
         {RESOURCES.map((r) => (
           <button
             key={r.key}

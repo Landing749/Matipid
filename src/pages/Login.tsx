@@ -54,7 +54,7 @@ export function Login() {
         className="relative w-full max-w-sm"
       >
         {/* Card */}
-        <div className="glass rounded-3xl p-8 shadow-2xl shadow-surface-950/80">
+        <div className="clay-panel rounded-3xl p-8">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
             <motion.div

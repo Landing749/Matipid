@@ -234,7 +234,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
               <h2 className="text-[14px] font-semibold text-surface-100 font-display">{title}</h2>
               <button
                 onClick={onClose}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-surface-500 hover:text-surface-200 hover:bg-white/60 transition-all"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-surface-500 hover:text-surface-200 hover:bg-[rgba(var(--surface-overlay-rgb),0.6)] transition-all"
               >
                 <X size={14} />
               </button>

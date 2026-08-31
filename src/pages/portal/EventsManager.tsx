@@ -9,6 +9,7 @@ import { v4 as uuid } from 'uuid'
 import { format } from 'date-fns'
 import { dbGet, dbSet, dbRemove, logActivity, saveVersion } from '@/lib/firebase'
 import { uploadImage } from '@/lib/cloudinary'
+import { triggerDeploy } from '@/lib/worker'
 import { formatDate } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { PageHeader, EmptyState, Modal, Spinner, Skeleton } from '@/components/ui'
@@ -212,6 +213,8 @@ export function EventsManager() {
       toast.success('Event created.')
     }
 
+    triggerDeploy()
+
     setShowModal(false)
     reset()
     setEditing(null)
@@ -230,6 +233,7 @@ export function EventsManager() {
       action: 'DELETE_EVENT', targetResource: 'events', targetId: event.id,
     })
     toast.success('Event deleted.')
+    triggerDeploy()
     setDeleting(null)
     load()
   }

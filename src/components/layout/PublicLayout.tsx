@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { Outlet, NavLink, Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Outlet, NavLink, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, LogIn } from 'lucide-react'
+import { Menu, X, LogIn, ChevronDown } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { Sun, Moon } from 'lucide-react'
 import { Toaster } from 'sonner'
@@ -10,24 +10,48 @@ import { useSiteSettings } from '@/lib/useSiteSettings'
 import { CookieConsentBanner } from '@/components/CookieConsentBanner'
 import { ClassAnthemPlayer } from '@/components/ClassAnthemPlayer'
 
-const navLinks = [
+// Primary links stay visible in the pill bar; everything else lives under "More".
+const primaryLinks = [
   { to: '/', label: 'Home', end: true },
   { to: '/announcements', label: 'Announcements' },
   { to: '/events', label: 'Events' },
-  { to: '/timeline', label: 'Timeline' },
   { to: '/gallery', label: 'Gallery' },
   { to: '/finances', label: 'Transparency' },
+]
+
+const moreLinks = [
+  { to: '/timeline', label: 'Timeline' },
   { to: '/year-in-review', label: 'Recap' },
   { to: '/officers', label: 'Officers' },
   { to: '/suggestions', label: 'Suggestions' },
   { to: '/about', label: 'About' },
 ]
 
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+    isActive
+      ? 'text-brand-700 bg-brand-100'
+      : 'text-surface-500 hover:text-surface-100 hover:bg-[rgba(var(--surface-overlay-rgb),0.6)]'
+  }`
+
 export function PublicLayout() {
   const [open, setOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreRef = useRef<HTMLDivElement>(null)
   const { theme, toggle } = useTheme()
   const { data: settings } = useSiteSettings()
   const sectionName = settings?.section || 'MATIPID'
+  const { pathname } = useLocation()
+  const moreActive = moreLinks.some((l) => pathname.startsWith(l.to))
+
+  // Close the "More" dropdown on outside click.
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
 
   return (
     <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col">
@@ -41,28 +65,63 @@ export function PublicLayout() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                end={l.end}
-                className={({ isActive }) =>
-                  `px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    isActive
-                      ? 'text-brand-700 bg-brand-100'
-                      : 'text-surface-500 hover:text-surface-100 hover:bg-white/60'
-                  }`
-                }
-              >
+            {primaryLinks.map((l) => (
+              <NavLink key={l.to} to={l.to} end={l.end} className={navLinkClass}>
                 {l.label}
               </NavLink>
             ))}
+
+            <div className="relative" ref={moreRef}>
+              <button
+                onClick={() => setMoreOpen((v) => !v)}
+                aria-expanded={moreOpen}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  moreActive
+                    ? 'text-brand-700 bg-brand-100'
+                    : 'text-surface-500 hover:text-surface-100 hover:bg-[rgba(var(--surface-overlay-rgb),0.6)]'
+                }`}
+              >
+                More
+                <ChevronDown size={14} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {moreOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-2 w-48 clay-panel p-1.5 z-50"
+                  >
+                    {moreLinks.map((l) => (
+                      <NavLink
+                        key={l.to}
+                        to={l.to}
+                        onClick={() => setMoreOpen(false)}
+                        className={({ isActive }) =>
+                          `block px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                            isActive
+                              ? 'text-brand-700 bg-brand-100'
+                              : 'text-surface-500 hover:text-surface-100 hover:bg-black/5'
+                          }`
+                        }
+                      >
+                        {l.label}
+                      </NavLink>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </nav>
 
           <div className="flex items-center gap-1.5">
             <button
               onClick={toggle}
-              className="p-2 rounded-full text-surface-500 hover:bg-white/60 hover:text-surface-100 transition-all"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              title="Toggle theme"
+              className="p-2 rounded-full text-surface-500 hover:bg-[rgba(var(--surface-overlay-rgb),0.6)] hover:text-surface-100 transition-all"
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -72,7 +131,8 @@ export function PublicLayout() {
             </Link>
             <button
               onClick={() => setOpen(true)}
-              className="md:hidden p-2 rounded-full text-surface-500 hover:bg-white/60 hover:text-surface-100 transition-colors"
+              aria-label="Open menu"
+              className="md:hidden p-2 rounded-full text-surface-500 hover:bg-[rgba(var(--surface-overlay-rgb),0.6)] hover:text-surface-100 transition-colors"
             >
               <Menu size={20} />
             </button>
@@ -97,11 +157,11 @@ export function PublicLayout() {
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="absolute right-3 top-3 bottom-3 w-64 clay rounded-4xl p-6"
             >
-              <button onClick={() => setOpen(false)} className="mb-6 text-surface-400 hover:text-surface-100">
+              <button onClick={() => setOpen(false)} aria-label="Close menu" className="mb-6 text-surface-400 hover:text-surface-100">
                 <X size={20} />
               </button>
               <nav className="flex flex-col gap-1">
-                {navLinks.map((l) => (
+                {primaryLinks.map((l) => (
                   <NavLink
                     key={l.to}
                     to={l.to}
@@ -111,14 +171,34 @@ export function PublicLayout() {
                       `px-3 py-2.5 rounded-2xl text-sm font-medium transition-all ${
                         isActive
                           ? 'text-brand-700 bg-brand-100'
-                          : 'text-surface-500 hover:text-surface-100 hover:bg-white/60'
+                          : 'text-surface-500 hover:text-surface-100 hover:bg-[rgba(var(--surface-overlay-rgb),0.6)]'
                       }`
                     }
                   >
                     {l.label}
                   </NavLink>
                 ))}
-                <Link to="/login" className="btn-primary mt-4 justify-center">
+
+                <div className="h-px bg-surface-800/10 my-2" />
+
+                {moreLinks.map((l) => (
+                  <NavLink
+                    key={l.to}
+                    to={l.to}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      `px-3 py-2.5 rounded-2xl text-sm font-medium transition-all ${
+                        isActive
+                          ? 'text-brand-700 bg-brand-100'
+                          : 'text-surface-500 hover:text-surface-100 hover:bg-[rgba(var(--surface-overlay-rgb),0.6)]'
+                      }`
+                    }
+                  >
+                    {l.label}
+                  </NavLink>
+                ))}
+
+                <Link to="/login" onClick={() => setOpen(false)} className="btn-primary mt-4 justify-center">
                   Officer Login
                 </Link>
               </nav>
@@ -148,7 +228,18 @@ export function PublicLayout() {
         </div>
       </footer>
 
-      <Toaster position="top-right" theme="light" />
+      <Toaster
+        position="top-right"
+        theme="light"
+        toastOptions={{
+          style: {
+            background: 'var(--clay-fill)',
+            border: '1px solid rgba(var(--clay-edge-light-rgb),0.7)',
+            color: 'var(--clay-text)',
+            boxShadow: '9px 9px 18px rgba(var(--clay-edge-dark-rgb),0.3), -9px -9px 18px rgba(var(--clay-edge-light-rgb),0.85)',
+          },
+        }}
+      />
       <CookieConsentBanner />
       <ClassAnthemPlayer />
     </div>

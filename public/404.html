@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MATIPID Portal</title>
+    <script>
+      // GitHub Pages has no server-side rewrites, so a direct hit or reload
+      // on a deep link (e.g. /matipid/announcements/123) 404s before React
+      // Router ever sees it. GitHub Pages serves this file for any 404, so
+      // it repackages the real path into a query string on index.html; the
+      // matching script in index.html unpacks it via history.replaceState
+      // before the app mounts, and React Router takes it from there.
+      //
+      // pathSegmentsToKeep = 1 keeps the repo-name segment of the URL
+      // (e.g. "/matipid") untouched — it must match the depth of
+      // VITE_BASE_URL set in the deploy workflow. Bump this if the base
+      // path ever grows more segments.
+      var pathSegmentsToKeep = 1;
+      var l = window.location;
+      var segments = l.pathname.split('/');
+      var newPath =
+        segments.slice(0, 1 + pathSegmentsToKeep).join('/') +
+        '/?p=/' +
+        segments.slice(1 + pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash;
+      l.replace(newPath);
+    </script>
+  </head>
+  <body></body>
+</html>

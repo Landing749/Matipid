@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { v4 as uuid } from 'uuid'
 import { dbGet, dbSet, dbUpdate, dbRemove, logActivity, saveVersion } from '@/lib/firebase'
 import { uploadImage } from '@/lib/cloudinary'
+import { triggerDeploy, schedulePublish, cancelSchedule } from '@/lib/worker'
 import { formatDate, formatDateTime, cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { PageHeader, EmptyState, Modal, Spinner, Skeleton } from '@/components/ui'
@@ -237,6 +238,8 @@ export function AnnouncementsManager() {
       ? new Date(values.publishAt).getTime()
       : undefined
 
+    const id = editing ? editing.id : uuid()
+
     if (editing) {
       const updated: Announcement = {
         ...editing,
@@ -253,7 +256,6 @@ export function AnnouncementsManager() {
       })
       toast.success('Announcement updated.')
     } else {
-      const id = uuid()
       const item: Announcement = {
         id, title: values.title, content: values.content,
         author: values.author, authorUid: user.uid, category: values.category,
@@ -269,6 +271,27 @@ export function AnnouncementsManager() {
       toast.success(
         status === 'draft' ? 'Draft saved.' : publishAt ? 'Announcement scheduled.' : 'Announcement posted.'
       )
+    }
+
+    // Preview bookkeeping. A save only tells us the *new* state — whether
+    // this actually changes what's publicly visible (and therefore needs
+    // a rebuild) depends on comparing against what was visible before.
+    // This is what catches unpublish (published → draft), which the old
+    // `if (status === 'published')` check missed entirely since it never
+    // looks at the previous state.
+    const wasVisible = !!editing && editing.status === 'published'
+      && (!editing.publishAt || editing.publishAt <= now)
+    const isVisible = status === 'published' && (!publishAt || publishAt <= now)
+    if (wasVisible !== isVisible) triggerDeploy()
+
+    // A future publishAt won't be visible yet, so nothing above fires for
+    // it — schedule a one-shot rebuild for the exact moment it will be.
+    // Any earlier schedule for this id (from a prior save) is overwritten;
+    // if this save no longer needs one, clear it instead.
+    if (status === 'published' && publishAt && publishAt > now) {
+      schedulePublish(id, publishAt)
+    } else if (editing) {
+      cancelSchedule(id)
     }
 
     setShowModal(false)
@@ -295,6 +318,12 @@ export function AnnouncementsManager() {
       action: 'DELETE_ANNOUNCEMENT', targetResource: 'announcements', targetId: item.id,
     })
     toast.success('Announcement deleted.')
+    triggerDeploy()
+    // Clears any pending publishAt alarm for this id — harmless no-op if
+    // it was never scheduled, but without this a scheduled-then-deleted
+    // post would still fire a (now pointless) rebuild when its old
+    // publishAt time arrived.
+    cancelSchedule(item.id)
     setDeleting(null)
     load()
   }

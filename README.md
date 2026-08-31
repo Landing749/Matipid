@@ -26,7 +26,7 @@ A modern Section Management & Transparency Platform for Grade 8 Section MATIPID.
 - Tailwind CSS + Framer Motion
 - Firebase Auth + Realtime Database
 - Cloudinary (image storage)
-- React Router (HashRouter for GitHub Pages)
+- React Router (BrowserRouter, with a `public/404.html` fallback for GitHub Pages deep links)
 - Recharts, TanStack Query, React Hook Form + Zod, Sonner
 
 ## Setup
@@ -51,7 +51,43 @@ npm run dev
 
 Push to `main` — GitHub Actions automatically builds and deploys to GitHub Pages.
 
-Set `VITE_BASE_URL` in the workflow to `/<repo-name>/`.
+Set `VITE_BASE_URL` in the workflow to `/<repo-name>/`, and `VITE_SITE_URL`
+to the full deployed origin + base with **no trailing slash**, e.g.
+`https://username.github.io/matipid`. `VITE_SITE_URL` feeds the site-wide
+Open Graph tags in `index.html` and the per-page ones described below —
+without it, shared links preview with broken relative image/URL tags.
+
+Routing uses real URLs (`BrowserRouter`), not `/#/hash` paths, so shared
+links can get per-page previews. GitHub Pages can't rewrite deep links
+server-side, so `public/404.html` catches them and redirects to
+`index.html`, which restores the real URL before React Router mounts —
+see the comments in `public/404.html` and `index.html`. If `VITE_BASE_URL`
+ever grows past one path segment (e.g. deploying under a subpath deeper
+than `/<repo-name>/`), bump `pathSegmentsToKeep` in `public/404.html` to
+match.
+
+### Link previews for announcements & events
+
+`scripts/prerender-og.mjs` runs automatically after every build (`npm run
+build` → `postbuild`). It fetches public announcements/events straight
+from the RTDB REST endpoint and writes a static
+`dist/announcements/<id>/index.html` / `dist/events/<id>/index.html` for
+each — a copy of the real `index.html` with that item's title,
+description, and cover image swapped into the `<meta>` tags (falling back
+to the site logo when an item has no cover image). GitHub Pages serves
+these directly, so crawlers that don't run JavaScript (Facebook, Discord,
+Twitter/X, iMessage, Slack) still see the correct preview, while real
+visitors get the same JS bundle and the SPA takes over normally.
+
+Deploys — and so these previews — happen automatically and immediately
+whenever an officer creates, edits, or deletes an announcement or event,
+not just on a code push. Saving/deleting in `AnnouncementsManager` or
+`EventsManager` calls `triggerDeploy()` (`src/lib/worker.ts`), which hits
+the Worker's `POST /trigger-deploy`, which fires a `repository_dispatch`
+that re-runs this workflow. See `worker/README.md`'s "Deploy triggering"
+section for the one-time setup (a scoped GitHub token as a Worker secret).
+This is event-driven, not polled — nothing runs unless content actually
+changed, and there's no periodic schedule to configure.
 
 ### Export Worker (PDF/Excel)
 

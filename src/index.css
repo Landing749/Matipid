@@ -3,11 +3,68 @@
 @tailwind utilities;
 
 @layer base {
+  /* ============ Theme tokens ============ */
+  /* Everything the clay system paints with lives here as CSS custom
+     properties, so toggling .dark on <html> re-themes the whole app without
+     touching component markup. Light values are the original palette;
+     dark values are a genuine dark clay material, not just inverted text. */
+  :root {
+    --page-bg: #f8f2e6;
+    --clay-fill: #faf5ea;
+    --clay-fill-inset: #f1e9d8;
+    --skeleton-fill: #ede4d2;
+    /* rgb triples (no spaces) so they drop straight into rgba(var(--x),A) */
+    --clay-edge-light-rgb: 255,255,255;
+    --clay-edge-dark-rgb: 150,132,103;
+    --surface-overlay-rgb: 255,255,255;
+    --glass-fill-rgb: 248,242,230;
+    --scrim-rgb: 37,28,20;
+    --focus-offset: #f8f2e6;
+    --clay-text: #2b2419;
+    /* surface-* ramp, space-separated for Tailwind's rgb(var(--x) / <alpha-value>) */
+    --color-surface-50: 33 27 20;
+    --color-surface-100: 43 36 25;
+    --color-surface-200: 55 46 33;
+    --color-surface-300: 73 61 44;
+    --color-surface-400: 107 92 71;
+    --color-surface-500: 140 124 100;
+    --color-surface-600: 169 154 128;
+    --color-surface-700: 198 185 161;
+    --color-surface-800: 221 210 188;
+    --color-surface-900: 237 228 210;
+    --color-surface-950: 248 242 230;
+  }
+  .dark {
+    --page-bg: #211b14;
+    --clay-fill: #2b2419;
+    --clay-fill-inset: #1c170f;
+    --skeleton-fill: #2f2718;
+    --clay-edge-light-rgb: 120,104,80;
+    --clay-edge-dark-rgb: 0,0,0;
+    --surface-overlay-rgb: 120,104,80;
+    --glass-fill-rgb: 33,27,20;
+    --scrim-rgb: 0,0,0;
+    --focus-offset: #211b14;
+    --clay-text: #f8f2e6;
+    /* same ramp, reflected: dark-mode 950 = light-mode 50, and so on */
+    --color-surface-50: 248 242 230;
+    --color-surface-100: 237 228 210;
+    --color-surface-200: 221 210 188;
+    --color-surface-300: 198 185 161;
+    --color-surface-400: 169 154 128;
+    --color-surface-500: 140 124 100;
+    --color-surface-600: 107 92 71;
+    --color-surface-700: 73 61 44;
+    --color-surface-800: 55 46 33;
+    --color-surface-900: 43 36 25;
+    --color-surface-950: 33 27 20;
+  }
+
   * { @apply border-surface-800; }
   html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
   body {
-    @apply text-surface-100 font-sans;
-    background: #f8f2e6;
+    @apply text-surface-100 font-sans transition-colors duration-300;
+    background: var(--page-bg);
     background-image:
       radial-gradient(ellipse 70% 50% at 12% 0%, rgba(141,109,209,0.10) 0%, transparent 60%),
       radial-gradient(ellipse 55% 45% at 100% 20%, rgba(224,160,74,0.12) 0%, transparent 55%),
@@ -26,18 +83,18 @@
   /* Soft puffy surface: warm neutral fill + dual directional shadow (light hits top-left, warm shadow pools bottom-right).
      A faint two-tone border (lighter top/left, warmer bottom/right) reinforces the "pinched from clay" bevel. */
   .clay {
-    background: #faf5ea;
+    background: var(--clay-fill);
     border-width: 1px;
-    border-color: rgba(255,255,255,0.85) rgba(150,132,103,0.22) rgba(150,132,103,0.22) rgba(255,255,255,0.85);
-    @apply shadow-clay;
+    border-color: rgba(var(--clay-edge-light-rgb),0.9) rgba(var(--clay-edge-dark-rgb),0.3) rgba(var(--clay-edge-dark-rgb),0.3) rgba(var(--clay-edge-light-rgb),0.9);
+    @apply shadow-clay transition-colors duration-300;
   }
   .clay-sm {
-    background: #faf5ea;
+    background: var(--clay-fill);
     border-width: 1px;
-    border-color: rgba(255,255,255,0.85) rgba(150,132,103,0.2) rgba(150,132,103,0.2) rgba(255,255,255,0.85);
-    @apply shadow-clay-sm;
+    border-color: rgba(var(--clay-edge-light-rgb),0.9) rgba(var(--clay-edge-dark-rgb),0.28) rgba(var(--clay-edge-dark-rgb),0.28) rgba(var(--clay-edge-light-rgb),0.9);
+    @apply shadow-clay-sm transition-colors duration-300;
   }
-  .clay-inset { background: #f1e9d8; @apply shadow-clay-inset; }
+  .clay-inset { background: var(--clay-fill-inset); @apply shadow-clay-inset transition-colors duration-300; }
 
   /* Cards — the base "tile" used everywhere, including the bento grid */
   .card {
@@ -55,27 +112,31 @@
 
   /* Glass kept for compatibility, retuned to a frosted-clay look for sticky headers */
   .glass {
-    background: rgba(248,242,230,0.75);
-    @apply backdrop-blur-md border border-white/60;
+    background: rgba(var(--glass-fill-rgb),0.75);
+    border: 1px solid rgba(var(--clay-edge-light-rgb),0.5);
+    @apply backdrop-blur-md transition-colors duration-300;
   }
 
   /* Floating clay panel — for modals, dropdowns, popovers, command palettes.
      Opaque so it reads as a solid raised surface against the page, not a
-     transparent leftover from the old dark theme. */
+     transparent leftover from the old dark theme. Same two-tone bevel as
+     .clay so it reads as "lifted" rather than just outlined. */
   .clay-panel {
-    background: #faf5ea;
-    border: 1px solid rgba(255,255,255,0.7);
-    @apply rounded-2xl shadow-clay-lg;
+    background: var(--clay-fill);
+    border-width: 1px;
+    border-color: rgba(var(--clay-edge-light-rgb),0.95) rgba(var(--clay-edge-dark-rgb),0.32) rgba(var(--clay-edge-dark-rgb),0.32) rgba(var(--clay-edge-light-rgb),0.95);
+    @apply rounded-2xl shadow-clay-lg transition-colors duration-300;
   }
-  /* Dark scrim behind modals/palettes — dims the page instead of the old
-     near-white "dark" tokens that stopped working once the surface ramp
-     was inverted for the clay palette. */
-  .scrim { background: rgba(37,28,20,0.45); }
+  /* Dark scrim behind modals/palettes — dims the page regardless of theme. */
+  .scrim { background: rgba(var(--scrim-rgb),0.5); }
 
   /* Small dark chip — for tooltips and kbd callouts that need to pop off
-     the light clay chrome regardless of theme. */
+     the clay chrome regardless of theme, so it uses fixed colors rather
+     than the theme-swapped surface tokens. */
   .chip-dark {
-    @apply bg-surface-100 text-surface-950 text-xs px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap;
+    @apply text-xs px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap;
+    background: #2b2419;
+    color: #f8f2e6;
   }
 
   /* Buttons — puffy clay pills that "press in" on click.
@@ -84,7 +145,7 @@
      actually press; secondary/ghost/danger stay flatter clay so the gloss reads as
      emphasis rather than noise. */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#f8f2e6] disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--focus-offset)] disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-primary {
     @apply btn text-white focus:ring-brand-400 relative;
@@ -119,16 +180,16 @@
       0 0 0 rgba(95,71,156,0);
   }
   .btn-secondary {
-    @apply btn text-surface-200 focus:ring-surface-400 active:scale-[0.97];
-    background: #f2ead9;
-    box-shadow: 5px 5px 10px rgba(150,132,103,0.3), -5px -5px 10px rgba(255,255,255,0.85);
+    @apply btn text-surface-200 focus:ring-surface-400 active:scale-[0.97] transition-colors;
+    background: var(--clay-fill-inset);
+    box-shadow: 5px 5px 10px rgba(var(--clay-edge-dark-rgb),0.3), -5px -5px 10px rgba(var(--clay-edge-light-rgb),0.85);
   }
-  .btn-secondary:hover { box-shadow: 6px 6px 14px rgba(150,132,103,0.35), -6px -6px 14px rgba(255,255,255,0.9); }
+  .btn-secondary:hover { box-shadow: 6px 6px 14px rgba(var(--clay-edge-dark-rgb),0.35), -6px -6px 14px rgba(var(--clay-edge-light-rgb),0.9); }
   .btn-secondary:active { @apply shadow-clay-pressed; }
   .btn-ghost {
     @apply btn bg-transparent text-surface-400 hover:text-surface-100 focus:ring-surface-400 active:scale-[0.97];
   }
-  .btn-ghost:hover { background: rgba(255,255,255,0.5); }
+  .btn-ghost:hover { background: rgba(var(--surface-overlay-rgb),0.5); }
   .btn-danger {
     @apply btn text-red-700 active:scale-[0.97];
     background: #f8e4e0;
@@ -177,11 +238,11 @@
 
   /* Inputs — recessed clay wells */
   .input {
-    @apply w-full rounded-2xl px-4 py-2.5 text-sm text-surface-100 placeholder:text-surface-500 focus:outline-none transition-all border border-white/60;
-    background: #f1e9d8;
-    box-shadow: inset 3px 3px 7px rgba(150,132,103,0.28), inset -3px -3px 7px rgba(255,255,255,0.7);
+    @apply w-full rounded-2xl px-4 py-2.5 text-sm text-surface-100 placeholder:text-surface-500 focus:outline-none transition-all border border-[rgba(var(--clay-edge-light-rgb),0.6)];
+    background: var(--clay-fill-inset);
+    box-shadow: inset 3px 3px 7px rgba(var(--clay-edge-dark-rgb),0.28), inset -3px -3px 7px rgba(var(--clay-edge-light-rgb),0.7);
   }
-  .input:focus { box-shadow: inset 3px 3px 7px rgba(150,132,103,0.32), inset -3px -3px 7px rgba(255,255,255,0.7), 0 0 0 3px rgba(166,136,221,0.3); }
+  .input:focus { box-shadow: inset 3px 3px 7px rgba(var(--clay-edge-dark-rgb),0.32), inset -3px -3px 7px rgba(var(--clay-edge-light-rgb),0.7), 0 0 0 3px rgba(166,136,221,0.3); }
   .label {
     @apply block text-[10px] font-bold text-surface-500 mb-1.5 uppercase tracking-[0.12em];
   }
@@ -201,7 +262,7 @@
   .sidebar-item {
     @apply flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-[13px] font-medium text-surface-500 hover:text-surface-100 transition-all cursor-pointer;
   }
-  .sidebar-item:hover { background: rgba(255,255,255,0.6); }
+  .sidebar-item:hover { background: rgba(var(--surface-overlay-rgb),0.6); }
   .sidebar-item-active {
     @apply sidebar-item text-brand-700 font-semibold;
     background: #ece3fa;
@@ -212,7 +273,7 @@
   .gradient-text {
     @apply bg-gradient-to-r from-brand-600 via-brand-500 to-gold-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-shimmer;
   }
-  .skeleton { @apply rounded-2xl; background: #ede4d2; }
+  .skeleton { @apply rounded-2xl transition-colors duration-300; background: var(--skeleton-fill); }
   .mono { @apply font-mono text-sm; }
 
   /* Page backgrounds — soft clay blobs instead of neon radial glows */
@@ -277,7 +338,7 @@
   .prose-announcement hr { @apply border-surface-800 my-6; }
 
   /* Table rows */
-  .table-row { @apply border-t border-surface-800/60 hover:bg-white/40 transition-colors; }
+  .table-row { @apply border-t border-surface-800/60 hover:bg-[rgba(var(--surface-overlay-rgb),0.4)] transition-colors; }
 
   /* Scrollbar utility */
   .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -286,9 +347,9 @@
   /* Upload zone */
   .upload-zone {
     @apply flex items-center gap-3 px-4 py-3 rounded-2xl border-2 border-dashed border-surface-700/50 cursor-pointer transition-all duration-200;
-    background: rgba(255,255,255,0.4);
+    background: rgba(var(--surface-overlay-rgb),0.4);
   }
-  .upload-zone:hover { @apply border-brand-400/60; background: rgba(255,255,255,0.65); }
+  .upload-zone:hover { @apply border-brand-400/60; background: rgba(var(--surface-overlay-rgb),0.65); }
   .upload-zone.dragging { @apply border-brand-500; background: #ece3fa; }
 
   /* Icon tile — the little clay "nub" used before headings */

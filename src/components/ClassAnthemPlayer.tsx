@@ -84,14 +84,14 @@ export function ClassAnthemPlayer() {
                 onClick={toggle}
                 aria-label={playing ? 'Pause section anthem' : 'Play section anthem'}
                 aria-pressed={playing}
-                className="p-1.5 rounded-full text-surface-300 hover:bg-white/10 hover:text-surface-100 transition-colors"
+                className="p-1.5 rounded-full text-surface-300 hover:bg-[rgba(var(--surface-overlay-rgb),0.1)] hover:text-surface-100 transition-colors"
               >
                 {playing ? <Pause size={14} /> : <Play size={14} />}
               </button>
               <button
                 onClick={stopForSession}
                 aria-label="Stop and mute section anthem for this visit"
-                className="p-1.5 rounded-full text-surface-400 hover:bg-white/10 hover:text-surface-100 transition-colors"
+                className="p-1.5 rounded-full text-surface-400 hover:bg-[rgba(var(--surface-overlay-rgb),0.1)] hover:text-surface-100 transition-colors"
               >
                 <VolumeX size={14} />
               </button>

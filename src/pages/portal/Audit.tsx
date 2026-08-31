@@ -70,6 +70,10 @@ export function Audit() {
     }
   }
 
+  // load() only sets state after its awaits resolve (never synchronously
+  // during this effect's own execution), but the compiler's static analysis
+  // can't see through the promise chain — safe to suppress.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load().finally(() => setLoading(false)) }, [])
 
   async function doAction(tx: Transaction, action: 'APPROVE' | 'FLAG' | 'REJECT') {
@@ -78,6 +82,9 @@ export function Audit() {
 
     const statusMap = { APPROVE: 'approved', FLAG: 'flagged', REJECT: 'rejected' } as const
     const newStatus = statusMap[action]
+    // doAction only ever runs from the onClick below (never during render), so
+    // this is safe despite the compiler's conservative static analysis.
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now()
 
     // Update transaction status
@@ -167,12 +174,12 @@ export function Audit() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-white/50 rounded-xl p-1 w-fit border border-white/70 shadow-clay-sm">
+      <div className="flex gap-1 mb-6 bg-[rgba(var(--surface-overlay-rgb),0.5)] rounded-xl p-1 w-fit border border-[rgba(var(--surface-overlay-rgb),0.7)] shadow-clay-sm">
         {([['pending', 'Pending'] , ['history', 'Audit History']] as const).map(([key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === key ? 'bg-white text-brand-700 shadow-clay-sm' : 'text-surface-400 hover:text-surface-200'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === key ? 'bg-[var(--clay-fill)] text-brand-700 shadow-clay-sm' : 'text-surface-400 hover:text-surface-200'}`}
           >
             {label}
             {key === 'pending' && pending.length > 0 && (

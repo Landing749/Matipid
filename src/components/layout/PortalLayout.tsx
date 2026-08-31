@@ -7,7 +7,7 @@ import { Toaster } from 'sonner'
 
 export function PortalLayout() {
   return (
-    <div className="flex h-screen bg-[#f8f2e6] overflow-hidden">
+    <div className="flex h-screen bg-[var(--page-bg)] overflow-hidden transition-colors duration-300">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <PortalHeader />
@@ -15,7 +15,7 @@ export function PortalLayout() {
           background: `
             radial-gradient(ellipse 55% 50% at 50% -5%, rgba(141,109,209,0.10) 0%, transparent 60%),
             radial-gradient(ellipse 30% 35% at 88% 90%, rgba(224,160,74,0.08) 0%, transparent 55%),
-            #f8f2e6
+            var(--page-bg)
           `
         }}>
           {/* Subtle dot grid */}
@@ -39,10 +39,10 @@ export function PortalLayout() {
         theme="light"
         toastOptions={{
           style: {
-            background: '#faf5ea',
-            border: '1px solid rgba(255,255,255,0.7)',
-            color: '#2b2419',
-            boxShadow: '9px 9px 18px rgba(150,132,103,0.3), -9px -9px 18px rgba(255,255,255,0.85)',
+            background: 'var(--clay-fill)',
+            border: '1px solid rgba(var(--clay-edge-light-rgb),0.7)',
+            color: 'var(--clay-text)',
+            boxShadow: '9px 9px 18px rgba(var(--clay-edge-dark-rgb),0.3), -9px -9px 18px rgba(var(--clay-edge-light-rgb),0.85)',
           },
         }}
       />

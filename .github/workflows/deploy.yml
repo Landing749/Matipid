@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  repository_dispatch:
+    types: [content-updated]
 
 permissions:
   contents: read
@@ -12,7 +14,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build-and-deploy:
@@ -43,6 +45,7 @@ jobs:
         env:
           VITE_GIT_SHA: ${{ github.sha }}
           VITE_BASE_URL: /Matipid/
+          VITE_SITE_URL: https://landing749.github.io/Matipid
         run: npm run build
 
       - name: Setup Pages

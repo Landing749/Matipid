@@ -12,6 +12,27 @@ compatibility_flags = ["nodejs_compat"]
 FIREBASE_DB_URL = "https://section-matipid-default-rtdb.firebaseio.com"
 SECTION_NAME = "MATIPID"
 
+# Repo the /trigger-deploy endpoint dispatches a rebuild to. GITHUB_TOKEN
+# itself is NOT here — it's a secret, set separately (never commit it):
+#   npx wrangler secret put GITHUB_TOKEN
+# Use a fine-grained PAT scoped to just this repo with "Contents: read" +
+# "Actions: write" (Actions:write is what lets it fire repository_dispatch
+# and see workflow runs — it can't push code or change settings).
+GITHUB_OWNER = "Landing749"
+GITHUB_REPO = "Matipid"
+
 # Comma-separated list of allowed CORS origins. Add your GitHub Pages URL
 # (and http://localhost:5173 for local dev) after deploying.
 ALLOWED_ORIGINS = "http://localhost:5173,https://your-username.github.io"
+
+# One Durable Object instance per scheduled announcement, holding a single
+# alarm for its publishAt time — fires the rebuild the moment a scheduled
+# post actually goes live, with no polling. Free-plan eligible (SQLite
+# storage backend). See worker/src/publishScheduler.ts.
+[[durable_objects.bindings]]
+name = "PUBLISH_SCHEDULER"
+class_name = "PublishScheduler"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PublishScheduler"]

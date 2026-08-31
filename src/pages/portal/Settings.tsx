@@ -133,10 +133,12 @@ export function Settings() {
 
   function handleDrop(e: React.DragEvent<HTMLLabelElement>, kind: 'logo' | 'banner') {
     e.preventDefault()
-    kind === 'logo' ? setDragLogo(false) : setDragBanner(false)
+    if (kind === 'logo') setDragLogo(false)
+    else setDragBanner(false)
     const file = e.dataTransfer.files?.[0]
     if (!file || !file.type.startsWith('image/')) return
-    kind === 'logo' ? uploadLogoFile(file) : uploadBannerFile(file)
+    if (kind === 'logo') uploadLogoFile(file)
+    else uploadBannerFile(file)
   }
 
   function resetLogo() {
@@ -421,7 +423,7 @@ export function Settings() {
           exit={{ y: 80, opacity: 0 }}
           className="fixed bottom-4 left-4 right-4 sm:hidden z-40"
         >
-          <button onClick={handleSubmit(onSave)} disabled={saving} className="btn-primary w-full shadow-2xl">
+          <button onClick={handleSubmit(onSave)} disabled={saving} className="btn-primary w-full">
             {saving ? <Spinner size={16} /> : <><Save size={16} /> Save Changes</>}
           </button>
         </motion.div>

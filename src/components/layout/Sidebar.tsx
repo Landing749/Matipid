@@ -85,10 +85,10 @@ export function Sidebar() {
     <motion.aside
       animate={{ width: collapsed ? 72 : 256 }}
       transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-      className="relative flex flex-col h-screen border-r border-white/60 overflow-hidden flex-shrink-0 z-30"
+      className="relative flex flex-col h-screen border-r border-[rgba(var(--surface-overlay-rgb),0.6)] overflow-hidden flex-shrink-0 z-30"
       style={{
-        background: '#f2ead9',
-        boxShadow: '4px 0 24px rgba(150,132,103,0.18)',
+        background: 'var(--clay-fill-inset)',
+        boxShadow: `4px 0 24px rgba(var(--clay-edge-dark-rgb),0.18)`,
       }}
     >
       {/* Brand glow — soft clay tint, matches the palette instead of a neon aurora */}
@@ -129,7 +129,7 @@ export function Sidebar() {
           >
             <NavLink
               to="/portal/search"
-              className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-white/50 border border-white/70 text-surface-500 text-sm hover:bg-white/80 hover:border-brand-400/40 hover:text-surface-300 transition-all group shadow-clay-sm"
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-[rgba(var(--surface-overlay-rgb),0.5)] border border-[rgba(var(--surface-overlay-rgb),0.7)] text-surface-500 text-sm hover:bg-[rgba(var(--surface-overlay-rgb),0.8)] hover:border-brand-400/40 hover:text-surface-300 transition-all group shadow-clay-sm"
             >
               <Search className="w-3.5 h-3.5 group-hover:text-brand-600 transition-colors flex-shrink-0" />
               <span className="flex-1 text-left text-xs">Search…</span>
@@ -278,7 +278,7 @@ export function Sidebar() {
         onClick={() => setCollapsed((v) => !v)}
         whileHover={{ scale: 1.12 }}
         whileTap={{ scale: 0.9 }}
-        className="absolute top-[18px] -right-3 z-50 w-6 h-6 rounded-full bg-[#faf5ea] border border-white/70 flex items-center justify-center text-surface-400 hover:text-brand-600 hover:border-brand-400/50 transition-all shadow-clay-sm"
+        className="absolute top-[18px] -right-3 z-50 w-6 h-6 rounded-full bg-[var(--clay-fill)] border border-[rgba(var(--surface-overlay-rgb),0.7)] flex items-center justify-center text-surface-400 hover:text-brand-600 hover:border-brand-400/50 transition-all shadow-clay-sm"
       >
         <motion.span animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.22 }}>
           <ChevronLeft size={11} />

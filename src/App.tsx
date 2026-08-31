@@ -3,6 +3,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { ConsentProvider } from '@/contexts/ConsentContext'
 import { AppRouter } from '@/router'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1 } },
@@ -14,7 +15,9 @@ export default function App() {
       <ThemeProvider>
         <ConsentProvider>
           <AuthProvider>
-            <AppRouter />
+            <ErrorBoundary>
+              <AppRouter />
+            </ErrorBoundary>
           </AuthProvider>
         </ConsentProvider>
       </ThemeProvider>
