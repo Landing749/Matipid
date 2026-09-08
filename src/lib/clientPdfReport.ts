@@ -485,6 +485,18 @@ export async function buildSectionReportPdf(opts: SectionReportOptions): Promise
   drawRunningHeader()
   let y = MARGIN + HEADER_RESERVE
 
+  // Sample watermark has to go behind the cover-page content, not after
+  // it — draw it here, before the letterhead/stats/table are placed, so
+  // it reads as a background wash instead of painting solid glyphs on
+  // top of real text (which is what happened when this was drawn last).
+  if (!opts.security) {
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(70)
+    setText(doc, SAMPLE_GRAY)
+    doc.text('SAMPLE', PAGE_W / 2, PAGE_H / 2, { align: 'center', angle: 35 })
+    setText(doc, INK)
+  }
+
   const letterheadH = 44
   cardShadow(doc, MARGIN, y, CONTENT_W, letterheadH, 2.5)
   setFill(doc, BRAND_50)
@@ -736,11 +748,6 @@ export async function buildSectionReportPdf(opts: SectionReportOptions): Promise
     } catch {
       // QR image failed to embed — the printed verification code still works as a fallback.
     }
-  } else {
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(70)
-    setText(doc, SAMPLE_GRAY)
-    doc.text('SAMPLE', PAGE_W / 2, PAGE_H / 2, { align: 'center', angle: 35 })
   }
 
   return new Uint8Array(doc.output('arraybuffer') as ArrayBuffer)
