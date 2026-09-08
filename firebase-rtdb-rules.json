@@ -60,20 +60,33 @@
       }
     },
     "suggestions": {
+      ".read": "auth != null",
       "$suggestionId": {
-        ".read": "auth != null",
         ".write": "auth != null || !data.exists()",
         ".validate": "newData.hasChildren(['message', 'createdAt']) && newData.child('message').isString() && newData.child('message').val().length > 0 && newData.child('message').val().length <= 2000"
       }
     },
     "photoSubmissions": {
+      ".read": "auth != null",
       "$submissionId": {
-        ".read": "auth != null",
         ".write": "auth != null || !data.exists()",
         ".validate": "newData.hasChildren(['url', 'publicId', 'createdAt', 'status']) && newData.child('url').isString() && (auth != null || newData.child('status').val() == 'pending') && (!newData.hasChild('caption') || newData.child('caption').val().length <= 500) && (!newData.hasChild('name') || newData.child('name').val().length <= 60)"
       }
     },
     "audit_records": { ".read": "auth != null", ".write": "auth != null" },
+    "reportVerifications": {
+      ".read": true,
+      "_latest": {
+        "$kind": {
+          ".write": "auth != null && newData.isString() && root.child('reportVerifications').child(newData.val()).child('kind').val() === $kind && root.child('reportVerifications').child(newData.val()).child('status').val() === 'current'",
+          ".validate": "newData.isString() && newData.val().matches(/^[0-9a-fA-F-]{36}$/)"
+        }
+      },
+      "$reportId": {
+        ".write": "auth != null && (!data.exists() || (data.child('status').val() === 'current' && newData.child('status').val() === 'obsolete' && newData.child('reportId').val() === data.child('reportId').val() && newData.child('kind').val() === data.child('kind').val() && newData.child('sectionName').val() === data.child('sectionName').val() && newData.child('reportTitle').val() === data.child('reportTitle').val() && newData.child('periodLabel').val() === data.child('periodLabel').val() && newData.child('generatedAt').val() === data.child('generatedAt').val() && newData.child('hash').val() === data.child('hash').val() && newData.child('shortCode').val() === data.child('shortCode').val() && newData.child('supersedes').val() === data.child('supersedes').val()))",
+        ".validate": "newData.hasChildren(['reportId','kind','sectionName','reportTitle','periodLabel','generatedAt','hash','shortCode','status']) && newData.child('reportId').val() === $reportId && newData.child('reportId').val().matches(/^[0-9a-fA-F-]{36}$/) && newData.child('kind').isString() && newData.child('kind').val().length > 0 && newData.child('kind').val().length <= 64 && newData.child('sectionName').isString() && newData.child('sectionName').val().length <= 200 && newData.child('reportTitle').isString() && newData.child('reportTitle').val().length <= 200 && newData.child('periodLabel').isString() && newData.child('periodLabel').val().length <= 200 && newData.child('generatedAt').isNumber() && newData.child('hash').val().matches(/^[0-9a-f]{64}$/) && newData.child('shortCode').val().matches(/^[0-9A-F]{8}$/) && newData.child('hash').val().toUpperCase().beginsWith(newData.child('shortCode').val()) && (newData.child('status').val() === 'current' || newData.child('status').val() === 'obsolete') && (!newData.hasChild('preparedByEmail') || newData.child('preparedByEmail').val().length <= 254) && (!newData.hasChild('supersedes') || newData.child('supersedes').val().matches(/^[0-9a-fA-F-]{36}$/)) && (!newData.hasChild('supersededBy') || newData.child('supersededBy').val().matches(/^[0-9a-fA-F-]{36}$/))"
+      }
+    },
     "logs":          { ".read": "auth != null", ".write": "auth != null" },
     "users":         { ".read": "auth != null", ".write": "auth != null" },
     "backups":       { ".read": "auth != null", ".write": "auth != null" },

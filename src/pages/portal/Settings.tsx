@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Settings as SettingsIcon, Save, Upload, Globe, Palette, Info, AlertTriangle, RotateCcw, X, Image as ImageIcon, Music2 } from 'lucide-react'
+import { Settings as SettingsIcon, Save, Upload, Globe, Palette, Info, AlertTriangle, RotateCcw, X, Image as ImageIcon, Music2, FileSignature, Award } from 'lucide-react'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { dbGet, dbSet, logActivity } from '@/lib/firebase'
@@ -29,6 +29,18 @@ interface SiteSettings {
   bannerImage?: string
   anthemAudioUrl?: string
   anthemEmbedUrl?: string
+  /** Closing "keepsake" page of the Section Report PDF. Read live by the export worker — no redeploy needed when it changes. */
+  photoOfTheYear: {
+    imageUrl?: string
+    caption?: string
+    credit?: string
+  }
+  /** Printed names for the Section Report's signature page. Any left blank still get a signature line — that officer signs by hand. */
+  reportSignatories: {
+    auditorName?: string
+    treasurerName?: string
+    adviserName?: string
+  }
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -41,6 +53,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   gradeLevel: 'Grade 8',
   schoolYear: '2024-2025',
   socialLinks: {},
+  photoOfTheYear: {},
+  reportSignatories: {},
 }
 
 const fadeUp = {
@@ -59,8 +73,10 @@ export function Settings() {
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [uploadingPhotoOfYear, setUploadingPhotoOfYear] = useState(false)
   const [dragLogo, setDragLogo] = useState(false)
   const [dragBanner, setDragBanner] = useState(false)
+  const [dragPhotoOfYear, setDragPhotoOfYear] = useState(false)
 
   const { register, handleSubmit, reset, watch, setValue, formState: { isDirty } } = useForm<SiteSettings>({
     defaultValues: DEFAULT_SETTINGS,
@@ -119,6 +135,16 @@ export function Settings() {
     finally { setUploadingBanner(false) }
   }
 
+  async function uploadPhotoOfYearFile(file: File) {
+    setUploadingPhotoOfYear(true)
+    try {
+      const res = await uploadImage(file, 'reports')
+      setValue('photoOfTheYear.imageUrl', res.secure_url, { shouldDirty: true })
+      toast.success('Photo uploaded.')
+    } catch { toast.error('Upload failed.') }
+    finally { setUploadingPhotoOfYear(false) }
+  }
+
   function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (file) uploadLogoFile(file)
@@ -131,14 +157,22 @@ export function Settings() {
     e.target.value = ''
   }
 
-  function handleDrop(e: React.DragEvent<HTMLLabelElement>, kind: 'logo' | 'banner') {
+  function handlePhotoOfYearUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) uploadPhotoOfYearFile(file)
+    e.target.value = ''
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLLabelElement>, kind: 'logo' | 'banner' | 'photoOfYear') {
     e.preventDefault()
     if (kind === 'logo') setDragLogo(false)
-    else setDragBanner(false)
+    else if (kind === 'banner') setDragBanner(false)
+    else setDragPhotoOfYear(false)
     const file = e.dataTransfer.files?.[0]
     if (!file || !file.type.startsWith('image/')) return
     if (kind === 'logo') uploadLogoFile(file)
-    else uploadBannerFile(file)
+    else if (kind === 'banner') uploadBannerFile(file)
+    else uploadPhotoOfYearFile(file)
   }
 
   function resetLogo() {
@@ -148,6 +182,7 @@ export function Settings() {
 
   const logoUrl = watch('logoUrl')
   const bannerImage = watch('bannerImage')
+  const photoOfYearUrl = watch('photoOfTheYear.imageUrl')
 
   if (loading) {
     return (
@@ -378,6 +413,98 @@ export function Settings() {
                 control always appears alongside it. Leave blank to disable. Host the file yourself
                 (e.g. via Cloudinary) — keep it short and make sure you have the rights to use it.
               </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Section Report — Photo of the Year + Signatories */}
+        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={3.75} className="card-hover">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="icon-tile bg-gold-500/15 text-gold-700">
+              <Award size={16} />
+            </div>
+            <h2 className="text-sm font-semibold text-surface-200">Section Report — Photo of the Year</h2>
+          </div>
+          <p className="text-xs text-surface-500 mb-4">
+            Shown as a dedicated closing page in the "Export Section Report" PDF. Leave the photo unset to
+            skip that page entirely — the "Download sample" report always shows a placeholder here instead.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Photo</label>
+              <label
+                className={`upload-zone ${dragPhotoOfYear ? 'dragging' : ''}`}
+                onDragOver={(e) => { e.preventDefault(); setDragPhotoOfYear(true) }}
+                onDragLeave={() => setDragPhotoOfYear(false)}
+                onDrop={(e) => handleDrop(e, 'photoOfYear')}
+              >
+                {uploadingPhotoOfYear ? <Spinner size={16} /> : <ImageIcon size={16} className="text-surface-400 flex-shrink-0" />}
+                <span className="text-sm text-surface-400 truncate">
+                  {uploadingPhotoOfYear ? 'Uploading…' : photoOfYearUrl ? 'Replace photo' : 'Drop image or click to upload'}
+                </span>
+                <input type="file" accept="image/*" className="sr-only" onChange={handlePhotoOfYearUpload} />
+              </label>
+              {photoOfYearUrl ? (
+                <div className="relative mt-2">
+                  <motion.img
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    src={photoOfYearUrl}
+                    alt="Photo of the Year"
+                    className="h-24 w-full rounded-xl object-cover border border-surface-700"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setValue('photoOfTheYear.imageUrl', '', { shouldDirty: true }); toast.info('Photo removed.') }}
+                    title="Remove photo"
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-surface-400 hover:text-red-600 hover:border-red-500/40 transition-colors shadow-md"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-2 h-24 w-full rounded-xl border border-dashed border-surface-800 flex items-center justify-center text-xs text-surface-600">
+                  No photo set — closing page skipped
+                </div>
+              )}
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="label">Caption</label>
+                <input className="input" placeholder="e.g. The section during Foundation Day Fair" {...register('photoOfTheYear.caption')} />
+              </div>
+              <div>
+                <label className="label">Credit</label>
+                <input className="input" placeholder="e.g. Photo by Juan Dela Cruz" {...register('photoOfTheYear.credit')} />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Section Report — Signatories */}
+        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={3.85} className="card-hover">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="icon-tile bg-brand-600/15 text-brand-600">
+              <FileSignature size={16} />
+            </div>
+            <h2 className="text-sm font-semibold text-surface-200">Section Report — Signatories</h2>
+          </div>
+          <p className="text-xs text-surface-500 mb-4">
+            Printed names on the report's signature page. Leave any blank and that line still gets a
+            signature line and role label — the officer just signs it by hand.
+          </p>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div>
+              <label className="label">Auditor</label>
+              <input className="input" placeholder="Full name" {...register('reportSignatories.auditorName')} />
+            </div>
+            <div>
+              <label className="label">Treasurer</label>
+              <input className="input" placeholder="Full name" {...register('reportSignatories.treasurerName')} />
+            </div>
+            <div>
+              <label className="label">Class Adviser</label>
+              <input className="input" placeholder="Full name" {...register('reportSignatories.adviserName')} />
             </div>
           </div>
         </motion.div>

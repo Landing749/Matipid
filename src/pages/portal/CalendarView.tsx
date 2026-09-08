@@ -18,7 +18,7 @@ import { dbGet, dbSet, logActivity, saveVersion } from '@/lib/firebase'
 import { uploadImage } from '@/lib/cloudinary'
 import { useAuth } from '@/contexts/AuthContext'
 import { PageHeader, Spinner, Modal } from '@/components/ui'
-import { cn } from '@/lib/utils'
+import { cn, buildAppUrl } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 
 interface CalEvent {
@@ -82,7 +82,7 @@ export function CalendarView() {
 
   async function handleShare(ev: CalEvent) {
     if (ev.type !== 'event') return
-    const url = `${window.location.origin}${window.location.pathname}#/events/${ev.id}`
+    const url = buildAppUrl(`events/${ev.id}`)
     if (navigator.share) {
       try {
         await navigator.share({ title: ev.title, text: ev.description?.slice(0, 120), url })

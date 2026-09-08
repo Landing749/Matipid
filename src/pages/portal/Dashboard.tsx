@@ -5,6 +5,7 @@ import { ref, onValue, db } from '@/lib/firebase'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { StatCard, PageHeader } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
+import { SectionReportButton } from '@/components/SectionReportButton'
 
 interface LiveCounts {
   events: number
@@ -129,6 +130,7 @@ export function Dashboard() {
       <PageHeader
         title={`${greeting}${name ? `, ${name}` : ''}`}
         description="Here's what's happening across your section."
+        action={<SectionReportButton />}
       />
 
       {/* Stats grid */}

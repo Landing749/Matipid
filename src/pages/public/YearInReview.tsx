@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { format, getYear, eachMonthOfInterval } from 'date-fns'
 import { dbGet } from '@/lib/firebase'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate, buildAppUrl } from '@/lib/utils'
 import { Skeleton, EmptyState, StatusBadge, StatCard } from '@/components/ui'
 import { PhotoLightbox, type LightboxPhoto } from '@/components/PhotoLightbox'
 import { ExportButtons } from '@/components/ExportButtons'
@@ -542,7 +542,7 @@ export function YearInReview() {
             index={lightbox}
             onClose={() => setLightbox(null)}
             onIndexChange={setLightbox}
-            buildShareUrl={(photo) => `${window.location.origin}/gallery?photo=${photo.id}`}
+            buildShareUrl={(photo) => buildAppUrl(`gallery?photo=${photo.id}`)}
           />
         )}
       </AnimatePresence>

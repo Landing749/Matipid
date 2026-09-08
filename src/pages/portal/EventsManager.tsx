@@ -10,7 +10,7 @@ import { format } from 'date-fns'
 import { dbGet, dbSet, dbRemove, logActivity, saveVersion } from '@/lib/firebase'
 import { uploadImage } from '@/lib/cloudinary'
 import { triggerDeploy } from '@/lib/worker'
-import { formatDate } from '@/lib/utils'
+import { formatDate, buildAppUrl } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { PageHeader, EmptyState, Modal, Spinner, Skeleton } from '@/components/ui'
 
@@ -63,7 +63,7 @@ export function EventsManager() {
   const [attendeesList, setAttendeesList] = useState<RsvpEntry[] | null>(null)
 
   async function handleShare(event: Event) {
-    const url = `${window.location.origin}${window.location.pathname}#/events/${event.id}`
+    const url = buildAppUrl(`events/${event.id}`)
     if (navigator.share) {
       try {
         await navigator.share({ title: event.title, text: event.description?.slice(0, 120), url })

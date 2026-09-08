@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Megaphone, Pin, Search, ArrowRight, Link2, Check } from 'lucide-react'
 import { dbGet } from '@/lib/firebase'
-import { formatDate } from '@/lib/utils'
+import { formatDate, buildAppUrl } from '@/lib/utils'
 import { EmptyState, Skeleton } from '@/components/ui'
 
 interface Announcement {
@@ -43,7 +43,7 @@ export function Announcements() {
   const handleShare = async (e: React.MouseEvent, item: Announcement) => {
     e.preventDefault()
     e.stopPropagation()
-    const url = `${window.location.origin}${window.location.pathname}#/announcements/${item.id}`
+    const url = buildAppUrl(`announcements/${item.id}`)
     if (navigator.share) {
       try {
         await navigator.share({ title: item.title, text: item.content.slice(0, 120), url })

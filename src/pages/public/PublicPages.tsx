@@ -1,19 +1,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, Image as ImageIcon, Clock, Users, Info, X, ChevronLeft, ChevronRight, LayoutGrid, MapPin, Link2, Check, Search } from 'lucide-react'
+import { Calendar, Image as ImageIcon, Clock, Users, Info, X, ChevronLeft, ChevronRight, LayoutGrid, MapPin, Link2, Check, Search, Play } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   isSameDay, isSameMonth, isToday, addMonths, subMonths,
   startOfWeek, endOfWeek
 } from 'date-fns'
 import { dbGet } from '@/lib/firebase'
-import { formatDate } from '@/lib/utils'
+import { formatDate, buildAppUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { EmptyState, Skeleton, Modal } from '@/components/ui'
 import { AnthemEmbed } from '@/components/AnthemEmbed'
 import { PhotoLightbox } from '@/components/PhotoLightbox'
 import { DownloadAllButton } from '@/components/DownloadAllButton'
+import { GalleryCarousel } from '@/components/GalleryCarousel'
+import { PhotoSpotlight, type SpotlightPhoto } from '@/components/PhotoSpotlight'
+
+const GALLERY_VIEW_KEY = 'matipid_gallery_view_mode'
 
 interface Event {
   id: string
@@ -51,7 +55,7 @@ const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 /** Shares/copies a link to an event's detail page. Resolves after a native share, or once the link is on the clipboard. */
 async function shareEvent(event: Pick<Event, 'id' | 'title' | 'description'>): Promise<'shared' | 'copied'> {
-  const url = `${window.location.origin}${window.location.pathname}#/events/${event.id}`
+  const url = buildAppUrl(`events/${event.id}`)
   if (navigator.share) {
     try {
       await navigator.share({ title: event.title, text: event.description?.slice(0, 120), url })
@@ -562,6 +566,14 @@ export function Gallery() {
   const [loading, setLoading] = useState(true)
   const [lightbox, setLightbox] = useState<number | null>(null)
   const [eventFilter, setEventFilter] = useState<string>(() => searchParams.get('event') ?? '')
+  const [viewMode, setViewMode] = useState<'carousel' | 'grid'>(() => {
+    const saved = localStorage.getItem(GALLERY_VIEW_KEY)
+    return saved === 'grid' ? 'grid' : 'carousel'
+  })
+
+  useEffect(() => {
+    localStorage.setItem(GALLERY_VIEW_KEY, viewMode)
+  }, [viewMode])
 
   useEffect(() => {
     Promise.all([
@@ -635,6 +647,19 @@ export function Gallery() {
     setSearchParams(next, { replace: true })
   }
 
+  // Spotlight draws from the full, unfiltered pool — clear any active event
+  // filter so the lightbox's index lines up with where the photo actually is.
+  function openSpotlight(photo: SpotlightPhoto) {
+    const idx = images.findIndex((img) => img.id === photo.id)
+    if (idx === -1) return
+    setEventFilter('')
+    setLightbox(idx)
+    const next = new URLSearchParams(searchParams)
+    next.delete('event')
+    next.set('photo', photo.id)
+    setSearchParams(next, { replace: true })
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -661,8 +686,43 @@ export function Gallery() {
               <ImageIcon size={13} />
               Share your photos
             </Link>
+            <div className="flex gap-1 p-1 rounded-lg bg-surface-900 border border-surface-800">
+              <button
+                onClick={() => setViewMode('carousel')}
+                title="Slideshow view"
+                className={cn(
+                  'p-1.5 rounded-md transition-colors',
+                  viewMode === 'carousel' ? 'bg-brand-600 text-white' : 'text-surface-400 hover:text-surface-100'
+                )}
+              >
+                <Play size={14} />
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                title="Grid view"
+                className={cn(
+                  'p-1.5 rounded-md transition-colors',
+                  viewMode === 'grid' ? 'bg-brand-600 text-white' : 'text-surface-400 hover:text-surface-100'
+                )}
+              >
+                <LayoutGrid size={14} />
+              </button>
+            </div>
           </div>
         </div>
+
+        {!loading && images.length > 0 && (
+          <PhotoSpotlight
+            photos={images.map((img) => ({
+              id: img.id,
+              url: img.url,
+              caption: img.caption,
+              eventTitle: img.eventTitle,
+              uploadedAt: img.uploadedAt,
+            }))}
+            onOpen={openSpotlight}
+          />
+        )}
 
         {/* Per-event filter tabs */}
         {!loading && eventTabs.length > 0 && (
@@ -707,6 +767,16 @@ export function Gallery() {
             title="No photos yet"
             description={eventFilter ? 'No photos for this event yet.' : 'Gallery images will appear here.'}
           />
+        ) : viewMode === 'carousel' ? (
+          <GalleryCarousel
+            photos={filteredImages.map((img) => ({
+              id: img.id,
+              url: img.url,
+              caption: img.caption,
+              eventTitle: img.eventTitle,
+            }))}
+            onOpen={openLightbox}
+          />
         ) : (
           <div className="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
             {filteredImages.map((img, i) => (
@@ -735,7 +805,7 @@ export function Gallery() {
             index={lightbox}
             onClose={closeLightbox}
             onIndexChange={changeLightbox}
-            buildShareUrl={(photo) => `${window.location.origin}/gallery?photo=${photo.id}`}
+            buildShareUrl={(photo) => buildAppUrl(`gallery?photo=${photo.id}`)}
           />
         )}
       </AnimatePresence>

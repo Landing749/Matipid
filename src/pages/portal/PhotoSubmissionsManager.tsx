@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { v4 as uuid } from 'uuid'
 import { Camera, Check, X as XIcon, Link2, User, Calendar } from 'lucide-react'
 import { dbGet, dbSet, dbUpdate, logActivity } from '@/lib/firebase'
-import { formatDateTime } from '@/lib/utils'
+import { formatDateTime, buildAppUrl } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { PageHeader, EmptyState, Spinner, Skeleton } from '@/components/ui'
 import type { PhotoSubmission } from '@/lib/community'
@@ -33,7 +33,7 @@ export function PhotoSubmissionsManager() {
   useEffect(() => { load().finally(() => setLoading(false)) }, [])
 
   async function copyShareLink() {
-    const url = `${window.location.origin}${window.location.pathname}#/share-photos`
+    const url = buildAppUrl('share-photos')
     try {
       await navigator.clipboard.writeText(url)
     } catch {

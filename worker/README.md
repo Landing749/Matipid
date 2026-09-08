@@ -14,6 +14,17 @@ the browser SDK talks to (forwarding the officer's Firebase ID token as the
 - `GET /export/audit?format=pdf|xlsx&from=<ms>&to=<ms>`
   Requires `Authorization: Bearer <firebase-id-token>` — matches
   `audit_records`' `auth != null` read rule.
+- `GET /export/report?status=all|pending|approved|flagged|rejected&from=<ms>&to=<ms>`
+  Requires `Authorization: Bearer <firebase-id-token>` (officer session,
+  checked the same way as `/export/audit` — `events` and `transactions`
+  are technically public-read, but this is officer-facing tooling so it's
+  gated the same). PDF only — always returns one branded, multi-section
+  A4 "Section Report": a cover with the section logo and overview stat
+  cards, an Events & Attendance table (RSVP counts per event), and a
+  Financial Records table with totals. `from`/`to` filter events by their
+  own `date` and transactions by `createdAt`; overview totals only count
+  `approved` transactions (same convention as the Dashboard), though the
+  finance table itself still lists every status. See `src/report.ts`.
 - `POST /trigger-deploy`
   Requires `Authorization: Bearer <firebase-id-token>`. Fires a
   `repository_dispatch` (`content-updated`) at the GitHub repo set in

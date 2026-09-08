@@ -6,6 +6,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Builds a full, shareable URL for an in-app path, correctly including the
+ * deployed base path (e.g. `/Matipid/` on GitHub Pages). `window.location.origin`
+ * alone omits that base, which is why raw `${origin}/gallery?...` style links
+ * 404 once shared — always build share links with this instead.
+ */
+export function buildAppUrl(path: string): string {
+  const base = import.meta.env.BASE_URL // e.g. '/Matipid/'
+  return `${window.location.origin}${base}${path.replace(/^\//, '')}`
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency',

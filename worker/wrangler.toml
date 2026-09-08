@@ -25,6 +25,15 @@ GITHUB_REPO = "Matipid"
 # (and http://localhost:5173 for local dev) after deploying.
 ALLOWED_ORIGINS = "http://localhost:5173,https://your-username.github.io"
 
+# Section Report extras (photo of the year + signature page) read live
+# from the RTDB, not from this file, so they can be changed without a
+# redeploy:
+#   settings/photoOfTheYear     { imageUrl, caption?, credit? }
+#   settings/reportSignatories  { auditorName?, treasurerName?, adviserName? }
+# Either node can be partial or missing entirely — the photo page is
+# skipped if there's no imageUrl, and any blank signatory name just means
+# that officer signs the printed report by hand.
+
 # One Durable Object instance per scheduled announcement, holding a single
 # alarm for its publishAt time — fires the rebuild the moment a scheduled
 # post actually goes live, with no polling. Free-plan eligible (SQLite
@@ -36,3 +45,10 @@ class_name = "PublishScheduler"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["PublishScheduler"]
+
+# Real headless Chrome, used to render the Section Report as styled HTML
+# and print it to PDF (replaces the old hand-drawn pdf-lib layout). Free
+# plan: 10 minutes of browser usage/day, 60s per session — plenty for
+# occasional officer exports. No dashboard setup needed, just this binding.
+[browser]
+binding = "BROWSER"

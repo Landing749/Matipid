@@ -3,7 +3,7 @@ import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, ArrowLeft, MapPin, Check, Link2, Tag, Image as ImageIcon, PartyPopper, CalendarPlus, CalendarDays } from 'lucide-react'
 import { dbGet, dbIncrement, dbPush } from '@/lib/firebase'
-import { formatDate, cn } from '@/lib/utils'
+import { formatDate, cn, buildAppUrl } from '@/lib/utils'
 import { Skeleton, EmptyState } from '@/components/ui'
 import { Reactions } from '@/components/Reactions'
 import { Comments } from '@/components/Comments'
@@ -535,7 +535,7 @@ export function EventDetail() {
             index={lightbox}
             onClose={closeLightbox}
             onIndexChange={changeLightbox}
-            buildShareUrl={(photo) => `${window.location.origin}/gallery?photo=${photo.id}`}
+            buildShareUrl={(photo) => buildAppUrl(`gallery?photo=${photo.id}`)}
           />
         )}
       </AnimatePresence>

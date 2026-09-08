@@ -1,13 +1,19 @@
 import { corsHeaders, handleOptions, jsonError } from './cors'
 import { buildTablePdf } from './pdf'
-import { getAuditRecords, getTransactions, parseFilters } from './rtdb'
+import { renderPdfFromHtml } from './pdfRender'
+import { buildSectionReportHtml, fmtSigned, type PhotoOfTheYear, type ReportTable, type SignatoryLine } from './reportHtml'
+import { getAuditRecords, getEvents, getPhotoOfTheYear, getReportSignatories, getRsvps, getTransactions, parseFilters } from './rtdb'
 import { buildXlsx } from './sheet'
-import type { Env } from './types'
+import type { Env, ReportSignatoriesSetting } from './types'
 import { PublishScheduler } from './publishScheduler'
 
 export { PublishScheduler }
 
-const PHP = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 })
+// currencyDisplay: 'code' (→ "PHP 1,234.50") instead of the default peso
+// glyph "₱" — pdf-lib's standard Helvetica fonts use WinAnsi encoding,
+// which has no peso sign, so drawing/measuring "₱" throws at render time.
+// (The xlsx export is unaffected — Excel doesn't need font glyph coverage.)
+const PHP = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', currencyDisplay: 'code', minimumFractionDigits: 2 })
 
 function bearerToken(req: Request): string | null {
   const h = req.headers.get('Authorization') ?? ''
@@ -18,6 +24,24 @@ function bearerToken(req: Request): string | null {
 function filename(base: string, format: string) {
   const stamp = new Date().toISOString().slice(0, 10)
   return `${base}-${stamp}.${format === 'pdf' ? 'pdf' : 'xlsx'}`
+}
+
+/**
+ * Firebase ID tokens are JWTs; the `email` claim is just for display on the
+ * report's cover ("Prepared by ..."), so a lightweight unverified decode is
+ * fine here — requireOfficer() already proved this token is a live signed-in
+ * session via the RTDB round-trip before this is ever called.
+ */
+function decodeIdTokenEmail(idToken: string): string | undefined {
+  try {
+    const payload = idToken.split('.')[1]
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+    const claims = JSON.parse(atob(padded)) as { email?: string }
+    return claims.email
+  } catch {
+    return undefined
+  }
 }
 
 /**
@@ -202,6 +226,248 @@ async function handleFinanceExport(req: Request, env: Env, url: URL): Promise<Re
   })
 }
 
+/**
+ * Downloads whatever the officer set as `settings/photoOfTheYear` and
+ * hands back raw bytes + type ready for pdf-lib. Best-effort: any failure
+ * (deleted image, bad URL, unsupported format) just drops the closing
+ * photo page instead of failing the whole report — a broken photo link
+ * shouldn't block an officer from getting their finance/events report.
+ */
+async function fetchPhotoOfTheYear(env: Env): Promise<PhotoOfTheYear | undefined> {
+  const setting = await getPhotoOfTheYear(env).catch(() => null)
+  if (!setting) return undefined
+
+  try {
+    const res = await fetch(setting.imageUrl)
+    if (!res.ok) return undefined
+    const contentType = res.headers.get('content-type') ?? ''
+    const imageType = contentType.includes('png') || setting.imageUrl.toLowerCase().endsWith('.png') ? 'png' : 'jpg'
+    const imageBytes = new Uint8Array(await res.arrayBuffer())
+    return { imageBytes, imageType, caption: setting.caption, credit: setting.credit }
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Builds the three MATIPID signatory lines (Auditor, Treasurer, Class
+ * Adviser) from `settings/reportSignatories` in the RTDB. A blank/missing
+ * name still gets a line + role label — the officer signs by hand.
+ */
+function buildSignatories(setting: ReportSignatoriesSetting): SignatoryLine[] {
+  return [
+    { role: 'Auditor', name: setting.auditorName },
+    { role: 'Treasurer', name: setting.treasurerName },
+    { role: 'Class Adviser', name: setting.adviserName },
+  ]
+}
+
+/**
+ * "Download Sample" — same branded layout as the real Section Report,
+ * but built entirely from fixed placeholder data instead of live RTDB
+ * reads. Lets an officer see exactly what the template (including the
+ * closing photo page and signature page) looks like before real events,
+ * finance records, a photo, or signatory names are ever set. Every name
+ * that would otherwise come from live config just reads "Sample" so it's
+ * unmistakably not a real document.
+ */
+async function buildSampleReportResponse(req: Request, env: Env): Promise<Response> {
+  const eventsTable: ReportTable = {
+    title: 'Events & Attendance',
+    columns: [
+      { header: 'Date', width: 68 },
+      { header: 'Event', width: 195 },
+      { header: 'Location', width: 130 },
+      { header: 'Attendees', width: 114, align: 'right' },
+    ],
+    rows: [
+      ['2026-06-15', 'Sample Event One', 'Sample Location', '38'],
+      ['2026-07-04', 'Sample Event Two', 'Sample Location', '41'],
+      ['2026-08-20', 'Sample Event Three', 'Sample Location', '40'],
+    ],
+    emptyMessage: 'No events recorded for this period.',
+    footerLines: ['Total attendance across 3 events: 119'],
+  }
+
+  const financeTable: ReportTable = {
+    title: 'Financial Records',
+    columns: [
+      { header: 'Date', width: 65 },
+      { header: 'Type', width: 52 },
+      { header: 'Title', width: 158 },
+      { header: 'Category', width: 100 },
+      { header: 'Amount', width: 78, align: 'right' },
+      { header: 'Status', width: 54 },
+    ],
+    rows: [
+      ['2026-06-01', 'income', 'Sample Income Entry', 'Membership', fmtSigned(2000, false), 'approved'],
+      ['2026-06-18', 'expense', 'Sample Expense Entry', 'Supplies', fmtSigned(850, true), 'approved'],
+      ['2026-07-22', 'expense', 'Sample Pending Entry', 'Supplies', fmtSigned(1150, true), 'pending'],
+    ],
+    rowTones: ['approved', 'approved', 'pending'],
+    statusColumnIndex: 5,
+    caption: 'Pending, flagged, and rejected transactions are listed for transparency but excluded from the totals below.',
+    emptyMessage: 'No financial records for this period.',
+    footerLines: [`Total Income:  ${PHP.format(2000)}`, `Total Expense: ${PHP.format(850)}`, `Net Balance:   ${PHP.format(1150)}`],
+  }
+
+  const generatedAt = Date.now()
+  const reportTitle = 'Section Activity Report (SAMPLE)'
+  const html = buildSectionReportHtml({
+    sectionName: env.SECTION_NAME,
+    reportTitle,
+    periodLabel: 'Sample data — not from live records',
+    preparedBy: 'Sample',
+    generatedAt,
+    stats: [
+      { label: 'Events Recorded', value: '3' },
+      { label: 'Total Attendance', value: '119' },
+      { label: 'Total Income', value: PHP.format(2000), tone: 'income' },
+      { label: 'Total Expenses', value: PHP.format(850), tone: 'expense' },
+      { label: 'Net Balance', value: PHP.format(1150), tone: 'net' },
+    ],
+    tables: [eventsTable, financeTable],
+    photoOfTheYear: { caption: 'Sample caption goes here', credit: 'Sample credit line' },
+    signatories: [
+      { role: 'Auditor', name: 'Sample' },
+      { role: 'Treasurer', name: 'Sample' },
+      { role: 'Class Adviser', name: 'Sample' },
+    ],
+  })
+  const bytes = await renderPdfFromHtml(env, html, { sectionName: env.SECTION_NAME, reportTitle, generatedAt })
+
+  return new Response(bytes, {
+    headers: {
+      ...corsHeaders(req, env),
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename('matipid-section-report-sample', 'pdf')}"`,
+    },
+  })
+}
+
+/**
+ * Officer-only "Section Report" — a single branded A4 PDF combining events
+ * (with RSVP attendance) and finance records into one presentation-ready
+ * document, the way an officer would hand it to advisers or during
+ * turnover. Unlike the plain Finance export, overview totals only count
+ * `approved` transactions (matching what the Dashboard shows as the real
+ * balance); the finance table itself still lists every status so pending
+ * items are visible, just clearly labelled.
+ */
+async function handleReportExport(req: Request, env: Env, url: URL): Promise<Response> {
+  const auth = await requireOfficer(req, env)
+  if (auth instanceof Response) return auth
+
+  if (url.searchParams.get('sample') === '1') {
+    return buildSampleReportResponse(req, env)
+  }
+
+  const filters = parseFilters(url)
+  const [transactions, events, rsvps, photoOfTheYear, signatorySetting] = await Promise.all([
+    getTransactions(env, filters, auth.idToken),
+    getEvents(env, filters, auth.idToken),
+    getRsvps(env, auth.idToken),
+    fetchPhotoOfTheYear(env),
+    getReportSignatories(env),
+  ])
+
+  const attendeesFor = (eventId: string) => rsvps[eventId]?.count ?? 0
+  const totalAttendance = events.reduce((s, e) => s + attendeesFor(e.id), 0)
+
+  const approved = transactions.filter((t) => t.status === 'approved')
+  const totalIncome = approved.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+  const totalExpense = approved.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+  const net = totalIncome - totalExpense
+
+  const periodLabel =
+    filters.from || filters.to
+      ? `Period: ${filters.from ? new Date(filters.from).toISOString().slice(0, 10) : 'earliest record'} – ${filters.to ? new Date(filters.to).toISOString().slice(0, 10) : 'now'}`
+      : 'Period: All recorded activity'
+
+  const eventsTable: ReportTable = {
+    title: 'Events & Attendance',
+    columns: [
+      { header: 'Date', width: 68 },
+      { header: 'Event', width: 195 },
+      { header: 'Location', width: 130 },
+      { header: 'Attendees', width: 114, align: 'right' },
+    ],
+    rows: events.map((e) => [
+      new Date(e.date).toISOString().slice(0, 10),
+      e.title,
+      e.location || '—',
+      String(attendeesFor(e.id)),
+    ]),
+    emptyMessage: 'No events recorded for this period.',
+    footerLines: events.length
+      ? [`Total attendance across ${events.length} event${events.length === 1 ? '' : 's'}: ${totalAttendance}`]
+      : undefined,
+  }
+
+  const hasNonApproved = transactions.some((t) => t.status !== 'approved')
+  const financeTable: ReportTable = {
+    title: 'Financial Records',
+    columns: [
+      { header: 'Date', width: 65 },
+      { header: 'Type', width: 52 },
+      { header: 'Title', width: 158 },
+      { header: 'Category', width: 100 },
+      { header: 'Amount', width: 78, align: 'right' },
+      { header: 'Status', width: 54 },
+    ],
+    rows: transactions.map((t) => [
+      new Date(t.createdAt).toISOString().slice(0, 10),
+      t.type,
+      t.title,
+      t.category,
+      fmtSigned(t.amount, t.type === 'expense'),
+      t.status,
+    ]),
+    rowTones: transactions.map((t) => t.status),
+    statusColumnIndex: 5,
+    caption: hasNonApproved
+      ? 'Pending, flagged, and rejected transactions are listed for transparency but excluded from the totals below.'
+      : undefined,
+    emptyMessage: 'No financial records for this period.',
+    footerLines: transactions.length
+      ? [
+          `Total Income:  ${PHP.format(totalIncome)}`,
+          `Total Expense: ${PHP.format(totalExpense)}`,
+          `Net Balance:   ${PHP.format(net)}`,
+        ]
+      : undefined,
+  }
+
+  const generatedAt = Date.now()
+  const reportTitle = 'Section Activity Report'
+  const html = buildSectionReportHtml({
+    sectionName: env.SECTION_NAME,
+    reportTitle,
+    periodLabel,
+    preparedBy: decodeIdTokenEmail(auth.idToken),
+    generatedAt,
+    stats: [
+      { label: 'Events Recorded', value: String(events.length) },
+      { label: 'Total Attendance', value: String(totalAttendance) },
+      { label: 'Total Income', value: PHP.format(totalIncome), tone: 'income' },
+      { label: 'Total Expenses', value: PHP.format(totalExpense), tone: 'expense' },
+      { label: 'Net Balance', value: PHP.format(net), tone: 'net' },
+    ],
+    tables: [eventsTable, financeTable],
+    photoOfTheYear,
+    signatories: buildSignatories(signatorySetting),
+  })
+  const bytes = await renderPdfFromHtml(env, html, { sectionName: env.SECTION_NAME, reportTitle, generatedAt })
+
+  return new Response(bytes, {
+    headers: {
+      ...corsHeaders(req, env),
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename('matipid-section-report', 'pdf')}"`,
+    },
+  })
+}
+
 async function handleAuditExport(req: Request, env: Env, url: URL): Promise<Response> {
   const idToken = bearerToken(req)
   if (!idToken) return jsonError(req, env, 'Sign in required — attach your Firebase ID token as a Bearer token.', 401)
@@ -271,6 +537,9 @@ export default {
       }
       if (req.method === 'GET' && url.pathname === '/export/audit') {
         return await handleAuditExport(req, env, url)
+      }
+      if (req.method === 'GET' && url.pathname === '/export/report') {
+        return await handleReportExport(req, env, url)
       }
       if (req.method === 'POST' && url.pathname === '/trigger-deploy') {
         return await handleTriggerDeploy(req, env)

@@ -19,6 +19,7 @@ import { EventDetail } from '@/pages/public/EventDetail'
 import { Privacy } from '@/pages/public/Privacy'
 import { Terms } from '@/pages/public/Terms'
 import { SharePhotos } from '@/pages/public/SharePhotos'
+import { VerifyReport } from '@/pages/public/VerifyReport'
 import { NotFound } from '@/pages/public/NotFound'
 
 // Auth — lazy: not needed until someone actually visits /login.
@@ -76,6 +77,7 @@ export function AppRouter() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/share-photos" element={<SharePhotos />} />
+          <Route path="/verify/:reportId" element={<VerifyReport />} />
           <Route path="*" element={<NotFound />} />
         </Route>
 

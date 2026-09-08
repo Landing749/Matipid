@@ -8,7 +8,7 @@ import { auth } from '@/lib/firebase'
  */
 export const WORKER_URL = 'https://matipid-export.paymongo.workers.dev'
 
-export type ExportKind = 'finance' | 'audit'
+export type ExportKind = 'finance' | 'audit' | 'report'
 export type ExportFormat = 'pdf' | 'xlsx'
 
 export interface ExportFilters {
@@ -16,6 +16,8 @@ export interface ExportFilters {
   type?: string
   from?: number
   to?: number
+  /** Report export only — returns the branded template filled with fixed placeholder data instead of live records, so an officer can preview it before real events/finance/photo/signatories exist. */
+  sample?: boolean
 }
 
 function extFor(format: ExportFormat) {
@@ -23,9 +25,10 @@ function extFor(format: ExportFormat) {
 }
 
 /**
- * Downloads a Finance or Audit export from the Worker. Finance is publicly
- * readable so no token is required; Audit requires the signed-in officer's
- * Firebase ID token (the Worker forwards it to RTDB as `?auth=`).
+ * Downloads a Finance, Audit, or Section Report export from the Worker.
+ * Finance is publicly readable so no token is required; Audit and Report
+ * are officer-only and require the signed-in officer's Firebase ID token
+ * (the Worker forwards it to RTDB as `?auth=`).
  */
 export async function downloadExport(kind: ExportKind, format: ExportFormat, filters: ExportFilters = {}) {
   if (!WORKER_URL) {
@@ -38,11 +41,12 @@ export async function downloadExport(kind: ExportKind, format: ExportFormat, fil
   if (filters.type && filters.type !== 'all') url.searchParams.set('type', filters.type)
   if (filters.from) url.searchParams.set('from', String(filters.from))
   if (filters.to) url.searchParams.set('to', String(filters.to))
+  if (filters.sample) url.searchParams.set('sample', '1')
 
   const headers: HeadersInit = {}
-  if (kind === 'audit') {
+  if (kind === 'audit' || kind === 'report') {
     const idToken = await auth.currentUser?.getIdToken()
-    if (!idToken) throw new Error('Sign in required to export audit records.')
+    if (!idToken) throw new Error('Sign in required to export this.')
     headers.Authorization = `Bearer ${idToken}`
   }
 
@@ -56,7 +60,8 @@ export async function downloadExport(kind: ExportKind, format: ExportFormat, fil
   const objectUrl = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = objectUrl
-  a.download = `matipid-${kind}-${new Date().toISOString().slice(0, 10)}.${extFor(format)}`
+  const base = filters.sample ? `matipid-${kind}-sample` : `matipid-${kind}`
+  a.download = `${base}-${new Date().toISOString().slice(0, 10)}.${extFor(format)}`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
