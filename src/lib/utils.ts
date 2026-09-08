@@ -25,6 +25,24 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
+/**
+ * Same formatting, but plain ASCII ("PHP 2,000.00") instead of the "₱"
+ * glyph — for anything that ends up inside the jsPDF section report
+ * (src/lib/sectionReport.ts). jsPDF's built-in Helvetica/Courier fonts are
+ * WinAnsi-encoded and have no peso glyph; a character outside that
+ * encoding gets its code point truncated to its low byte, and
+ * U+20B1 (₱) truncates to 0xB1, which *is* "±" in WinAnsi/Latin-1 — that's
+ * where the "±2,000.00" in exported PDFs comes from. It also throws off
+ * doc.getTextWidth() for that string, which is what was misaligning the
+ * amount column against the status column and undersizing the totals
+ * footer box (both read as "broken layout" but the widths were computed
+ * from a corrupted string). Use formatCurrency for on-screen UI — browsers
+ * render "₱" fine — and this one for anything drawn with jsPDF.
+ */
+export function formatCurrencyForPdf(amount: number): string {
+  return 'PHP ' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
 export function formatDate(timestamp: number | string): string {
   const d = typeof timestamp === 'string' ? new Date(timestamp) : new Date(timestamp)
   return format(d, 'MMM dd, yyyy')

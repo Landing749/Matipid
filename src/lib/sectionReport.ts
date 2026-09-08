@@ -3,7 +3,7 @@ import { auth, dbGet, logActivity } from '@/lib/firebase'
 import { fetchReportSourceData } from '@/lib/reportData'
 import { registerReportVersion, buildVerifyUrl } from '@/lib/reportVerification'
 import { buildSectionReportPdf, type ReportStat, type ReportTable, type SignatoryLine } from '@/lib/clientPdfReport'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrencyForPdf } from '@/lib/utils'
 import logoMarkUrl from '@/assets/logo-mark.png'
 
 // Matches the Worker's env.SECTION_NAME branding.
@@ -48,7 +48,7 @@ async function loadImageAsDataUrl(url: string): Promise<string | undefined> {
 }
 
 function fmtSigned(amount: number, negative: boolean) {
-  return (negative ? '-' : '+') + formatCurrency(Math.abs(amount))
+  return (negative ? '-' : '+') + formatCurrencyForPdf(Math.abs(amount))
 }
 
 async function buildLiveSections(): Promise<ReportSections> {
@@ -109,9 +109,9 @@ async function buildLiveSections(): Promise<ReportSections> {
     emptyMessage: 'No financial records for this period.',
     footerLines: transactions.length
       ? [
-          `Total Income:  ${formatCurrency(totalIncome)}`,
-          `Total Expense: ${formatCurrency(totalExpense)}`,
-          `Net Balance:   ${formatCurrency(net)}`,
+          `Total Income:  ${formatCurrencyForPdf(totalIncome)}`,
+          `Total Expense: ${formatCurrencyForPdf(totalExpense)}`,
+          `Net Balance:   ${formatCurrencyForPdf(net)}`,
         ]
       : undefined,
   }
@@ -127,9 +127,9 @@ async function buildLiveSections(): Promise<ReportSections> {
     stats: [
       { label: 'Events Recorded', value: String(events.length) },
       { label: 'Total Attendance', value: String(totalAttendance) },
-      { label: 'Total Income', value: formatCurrency(totalIncome), tone: 'income' },
-      { label: 'Total Expenses', value: formatCurrency(totalExpense), tone: 'expense' },
-      { label: 'Net Balance', value: formatCurrency(net), tone: 'net' },
+      { label: 'Total Income', value: formatCurrencyForPdf(totalIncome), tone: 'income' },
+      { label: 'Total Expenses', value: formatCurrencyForPdf(totalExpense), tone: 'expense' },
+      { label: 'Net Balance', value: formatCurrencyForPdf(net), tone: 'net' },
     ],
     tables: [eventsTable, financeTable],
     photo,
@@ -182,7 +182,7 @@ function buildSampleSections(): ReportSections {
     statusColumnIndex: 5,
     caption: 'Pending, flagged, and rejected transactions are listed for transparency but excluded from the totals below.',
     emptyMessage: 'No financial records for this period.',
-    footerLines: [`Total Income:  ${formatCurrency(2000)}`, `Total Expense: ${formatCurrency(850)}`, `Net Balance:   ${formatCurrency(1150)}`],
+    footerLines: [`Total Income:  ${formatCurrencyForPdf(2000)}`, `Total Expense: ${formatCurrencyForPdf(850)}`, `Net Balance:   ${formatCurrencyForPdf(1150)}`],
   }
 
   return {
@@ -192,9 +192,9 @@ function buildSampleSections(): ReportSections {
     stats: [
       { label: 'Events Recorded', value: '3' },
       { label: 'Total Attendance', value: '119' },
-      { label: 'Total Income', value: formatCurrency(2000), tone: 'income' },
-      { label: 'Total Expenses', value: formatCurrency(850), tone: 'expense' },
-      { label: 'Net Balance', value: formatCurrency(1150), tone: 'net' },
+      { label: 'Total Income', value: formatCurrencyForPdf(2000), tone: 'income' },
+      { label: 'Total Expenses', value: formatCurrencyForPdf(850), tone: 'expense' },
+      { label: 'Net Balance', value: formatCurrencyForPdf(1150), tone: 'net' },
     ],
     tables: [eventsTable, financeTable],
     photo: { caption: 'Sample caption goes here', credit: 'Sample credit line' },
