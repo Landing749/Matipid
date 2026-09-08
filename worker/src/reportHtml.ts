@@ -1,10 +1,15 @@
 import { SECTION_LOGO_MARK_PNG_BASE64 } from './assets/logoMark'
 
-// currencyDisplay: 'code' (→ "PHP 1,234.50") instead of the default peso
-// glyph "₱" — kept as "code" here too (not a font issue in HTML, just
-// consistency with the rest of the exports so numbers read the same way
-// across the Section Report, Finance export, and on-screen totals).
-const PHP = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', currencyDisplay: 'code', minimumFractionDigits: 2 })
+// Manual formatter instead of Intl's `currency` style. `currencyDisplay:
+// 'code'` was supposed to print "PHP 1,234.50" and avoid the peso glyph
+// "₱", but the Workers runtime doesn't reliably honor that option — it
+// silently falls back to the symbol. That "₱" isn't in the embedded Inter
+// subset Chromium ships in the PDF, and a missing glyph during print-to-PDF
+// font subsetting corrupts glyph IDs for nearby text too — which is what
+// caused the garbled/overlapping table text, not just the wrong symbol.
+// Building the string by hand keeps it plain ASCII, so no glyph the font
+// can't cover ever reaches the HTML.
+const PHP = { format: (n: number) => 'PHP ' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
 
 // Brand palette — copied from tailwind.config.js so the PDF matches the
 // portal's UI exactly instead of an approximation.

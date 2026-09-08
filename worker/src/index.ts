@@ -9,11 +9,13 @@ import { PublishScheduler } from './publishScheduler'
 
 export { PublishScheduler }
 
-// currencyDisplay: 'code' (→ "PHP 1,234.50") instead of the default peso
-// glyph "₱" — pdf-lib's standard Helvetica fonts use WinAnsi encoding,
-// which has no peso sign, so drawing/measuring "₱" throws at render time.
+// Manual formatter, not Intl's `currency` style — see the matching comment
+// in reportHtml.ts. `currencyDisplay: 'code'` doesn't reliably hold in the
+// Workers runtime, it falls back to the "₱" glyph, which the PDF font
+// doesn't cover — that's what was producing the "±" and the garbled/
+// overlapping table text in the exported PDF. Plain ASCII avoids both.
 // (The xlsx export is unaffected — Excel doesn't need font glyph coverage.)
-const PHP = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', currencyDisplay: 'code', minimumFractionDigits: 2 })
+const PHP = { format: (n: number) => 'PHP ' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
 
 function bearerToken(req: Request): string | null {
   const h = req.headers.get('Authorization') ?? ''
